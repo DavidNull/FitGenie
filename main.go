@@ -17,12 +17,9 @@ func main() {
 	}
 
 	colorService := services.NewColorTheoryService()
-	styleService := services.NewStyleService()
-	aiService := services.NewAIService(colorService, styleService)
+	router := api.SetupColorTheoryRoutes(colorService)
 
-	router := api.SetupRoutes(colorService, styleService, aiService)
-
-	log.Printf("FitGenie server starting on port %s", cfg.Port)
+	log.Printf("FitGenie Color Theory server starting on port %s", cfg.Port)
 	if err := router.Run(":" + cfg.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
