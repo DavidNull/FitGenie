@@ -2,6 +2,8 @@
 
 FitGenie is an AI-powered fashion styling application that helps users create perfect outfits based on color theory, style analysis, and personal preferences.
 
+**Note: This project is under active development and may not be fully functional yet.**
+
 ## Features
 
 - **Color Theory Analysis**: Advanced color harmony analysis and seasonal color recommendations
