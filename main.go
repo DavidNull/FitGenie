@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"fitgenie/internal/api"
-	"fitgenie/internal/config"
-	"fitgenie/internal/database"
-	"fitgenie/internal/services"
+	"fitgenie/internal/api" //  handles HTTP routing and endpoints
+	"fitgenie/internal/config" // application settings
+	"fitgenie/internal/database" //  manages DB connection and migrations
+	"fitgenie/internal/services" // logic for color theory, etc.
 )
 
 func main() {
