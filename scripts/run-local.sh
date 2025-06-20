@@ -30,6 +30,6 @@ done
 
 echo "✅ Database is ready!"
 
-# Run the Go application
+# Run the Go application from the parent directory
 echo "🏃 Starting FitGenie API server..."
-go run main.go 
+(cd ../ && go run main.go)
