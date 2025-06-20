@@ -107,6 +107,14 @@ type OutfitRecommendation struct {
 	CreatedAt         time.Time `json:"created_at"`
 }
 
+// FavoriteOutfit represents a user's favorite outfit (many-to-many relationship)
+type FavoriteOutfit struct {
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	UserID    uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
+	OutfitID  uuid.UUID `json:"outfit_id" gorm:"type:uuid;not null"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // BeforeCreate hook for User model
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == uuid.Nil {
@@ -147,6 +155,13 @@ func (o *Outfit) BeforeCreate(tx *gorm.DB) error {
 func (or *OutfitRecommendation) BeforeCreate(tx *gorm.DB) error {
 	if or.ID == uuid.Nil {
 		or.ID = uuid.New()
+	}
+	return nil
+}
+
+func (fo *FavoriteOutfit) BeforeCreate(tx *gorm.DB) error {
+	if fo.ID == uuid.Nil {
+		fo.ID = uuid.New()
 	}
 	return nil
 }

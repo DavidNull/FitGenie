@@ -59,7 +59,7 @@ func NewAIService(colorService *ColorTheoryService, styleService *StyleService) 
 	}
 }
 
-// GenerateOutfitRecommendations creates AI-powered outfit recommendations
+//  creates AI-powered outfit recommendations
 func (ai *AIService) GenerateOutfitRecommendations(userID uuid.UUID, items []models.ClothingItem, preferences *models.StyleProfile) ([]models.OutfitRecommendation, error) {
 	if len(items) < 2 {
 		return nil, fmt.Errorf("need at least 2 items to create outfit recommendations")

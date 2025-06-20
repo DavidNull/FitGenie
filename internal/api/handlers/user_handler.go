@@ -246,3 +246,95 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		},
 	})
 }
+
+//  adds an outfit to the user's favorites
+func (h *UserHandler) AddFavoriteOutfit(c *gin.Context) {
+	userID := c.Param("userId")
+	outfitID := c.Param("outfitId")
+
+	// Validate UUIDs
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	outfitUUID, err := uuid.Parse(outfitID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid outfit ID"})
+		return
+	}
+
+	// Check if already favorited
+	var existing models.FavoriteOutfit
+	if err := database.DB.First(&existing, "user_id = ? AND outfit_id = ?", userUUID, outfitUUID).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Outfit already favorited"})
+		return
+	}
+
+	favorite := models.FavoriteOutfit{
+		UserID:   userUUID,
+		OutfitID: outfitUUID,
+	}
+	if err := database.DB.Create(&favorite).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add favorite"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, favorite)
+}
+
+//  removes an outfit from the user's favorites
+func (h *UserHandler) RemoveFavoriteOutfit(c *gin.Context) {
+	userID := c.Param("userId")
+	outfitID := c.Param("outfitId")
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	outfitUUID, err := uuid.Parse(outfitID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid outfit ID"})
+		return
+	}
+
+	if err := database.DB.Delete(&models.FavoriteOutfit{}, "user_id = ? AND outfit_id = ?", userUUID, outfitUUID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove favorite"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Favorite removed successfully"})
+}
+
+// ListFavoriteOutfits lists all favorite outfits for a user
+func (h *UserHandler) ListFavoriteOutfits(c *gin.Context) {
+	userID := c.Param("userId")
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	var favorites []models.FavoriteOutfit
+	if err := database.DB.Where("user_id = ?", userUUID).Find(&favorites).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve favorites"})
+		return
+	}
+
+	// Collect outfit IDs
+	outfitIDs := make([]uuid.UUID, 0, len(favorites))
+	for _, fav := range favorites {
+		outfitIDs = append(outfitIDs, fav.OutfitID)
+	}
+
+	var outfits []models.Outfit
+	if len(outfitIDs) > 0 {
+		if err := database.DB.Where("id IN ?", outfitIDs).Find(&outfits).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve outfits"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"favorites": outfits})
+}
