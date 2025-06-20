@@ -56,14 +56,19 @@ func SetupRoutes(
 			users.PUT("/:userId", userHandler.UpdateUser)
 			users.DELETE("/:userId", userHandler.DeleteUser)
 
-			// User profile routes
+			// User profile 
 			users.POST("/:userId/style-profile", userHandler.CreateStyleProfile)
 			users.GET("/:userId/style-profile", userHandler.GetStyleProfile)
 			users.POST("/:userId/color-profile", userHandler.CreateColorProfile)
 			users.GET("/:userId/color-profile", userHandler.GetColorProfile)
+
+			// Favorite outfits 
+			users.POST("/:userId/favorites/:outfitId", userHandler.AddFavoriteOutfit)
+			users.DELETE("/:userId/favorites/:outfitId", userHandler.RemoveFavoriteOutfit)
+			users.GET("/:userId/favorites", userHandler.ListFavoriteOutfits)
 		}
 
-		// Clothing items routes
+		// Clothing items 
 		clothing := v1.Group("/users/:userId/clothing")
 		{
 			clothing.POST("", outfitHandler.CreateClothingItem)
