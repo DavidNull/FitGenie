@@ -12,13 +12,13 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
-// AIService combines color theory and style analysis for intelligent recommendations
+// combines color theory and style analysis for intelligent recommendations
 type AIService struct {
 	colorService *ColorTheoryService
 	styleService *StyleService
 }
 
-// OutfitRecommendationRequest represents a request for outfit recommendations
+// represents a request for outfit recommendations
 type OutfitRecommendationRequest struct {
 	UserID   string
 	Occasion string
@@ -29,7 +29,7 @@ type OutfitRecommendationRequest struct {
 	MaxItems int
 }
 
-// OutfitScore represents the scoring of an outfit combination
+// represents the scoring of an outfit combination
 type OutfitScore struct {
 	Outfit              *models.Outfit
 	ColorHarmonyScore   float64
@@ -40,7 +40,7 @@ type OutfitScore struct {
 	Reasoning           string
 }
 
-// OutfitSuggestion represents a suggested outfit
+// represents a suggested outfit
 type OutfitSuggestion struct {
 	Items      []models.ClothingItem `json:"items"`
 	Confidence float64               `json:"confidence"`
@@ -51,7 +51,7 @@ type OutfitSuggestion struct {
 	Season     string                `json:"season"`
 }
 
-// NewAIService creates a new AI service
+// creates a new AI service
 func NewAIService(colorService *ColorTheoryService, styleService *StyleService) *AIService {
 	return &AIService{
 		colorService: colorService,
