@@ -65,10 +65,12 @@ func runMigrations() error {
 	return nil
 }
 
+// GetDB returns the database instance
 func GetDB() *gorm.DB {
 	return DB
 }
 
+// Close closes the database connection
 func Close() error {
 	sqlDB, err := DB.DB()
 	if err != nil {
@@ -77,6 +79,7 @@ func Close() error {
 	return sqlDB.Close()
 }
 
+// Health checks if the database connection is healthy
 func Health() error {
 	sqlDB, err := DB.DB()
 	if err != nil {

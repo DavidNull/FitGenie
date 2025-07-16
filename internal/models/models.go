@@ -14,17 +14,13 @@ type User struct {
 	Name      string    `json:"name" gorm:"not null"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-
-	// Style preferences
 	StyleProfile StyleProfile `json:"style_profile" gorm:"foreignKey:UserID"`
 	ColorProfile ColorProfile `json:"color_profile" gorm:"foreignKey:UserID"`
-
-	// User's wardrobe
 	ClothingItems []ClothingItem `json:"clothing_items" gorm:"foreignKey:UserID"`
 	Outfits       []Outfit       `json:"outfits" gorm:"foreignKey:UserID"`
 }
 
-// StyleProfile represents user's style preferences
+
 type StyleProfile struct {
 	ID              uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID          uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
@@ -36,7 +32,6 @@ type StyleProfile struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
-// ColorProfile represents user's color preferences and analysis
 type ColorProfile struct {
 	ID                uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID            uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
@@ -50,7 +45,6 @@ type ColorProfile struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
-// ClothingItem represents a piece of clothing
 type ClothingItem struct {
 	ID             uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID         uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
@@ -69,7 +63,6 @@ type ClothingItem struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
-// Outfit represents a complete outfit combination
 type Outfit struct {
 	ID                  uuid.UUID      `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID              uuid.UUID      `json:"user_id" gorm:"type:uuid;not null"`
@@ -91,7 +84,6 @@ type Outfit struct {
 	ClothingItems       []ClothingItem `json:"clothing_items" gorm:"many2many:outfit_clothing_items;"`
 }
 
-// OutfitRecommendation represents an AI-generated outfit recommendation
 type OutfitRecommendation struct {
 	ID                uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	OutfitID          uuid.UUID `json:"outfit_id" gorm:"type:uuid;not null"`
@@ -107,7 +99,6 @@ type OutfitRecommendation struct {
 	CreatedAt         time.Time `json:"created_at"`
 }
 
-// FavoriteOutfit represents a user's favorite outfit (many-to-many relationship)
 type FavoriteOutfit struct {
 	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID    uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
@@ -115,7 +106,7 @@ type FavoriteOutfit struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// BeforeCreate hook for User model
+// BeforeCreate hooks for UUID generation
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()
@@ -123,7 +114,6 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// BeforeCreate hooks for other models
 func (sp *StyleProfile) BeforeCreate(tx *gorm.DB) error {
 	if sp.ID == uuid.Nil {
 		sp.ID = uuid.New()
