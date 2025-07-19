@@ -3,7 +3,7 @@ package api
 import (
 	"fitgenie/internal/services"
 	"net/http"
-	"github.com/gin-gonic/gin"
+	// TODO: Migrar a Gorilla Mux. 
 )
 
 func SetupColorTheoryRoutes(colorService *services.ColorTheoryService) *gin.Engine {

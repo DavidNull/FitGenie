@@ -10,7 +10,6 @@ type Config struct {
 	DatabaseURL string
 	Port        string
 	JWTSecret   string
-	GinMode     string
 	ColorAnalysisEnabled bool
 	StyleAnalysisEnabled bool
 	MaxImageSize      int64
@@ -22,7 +21,6 @@ func Load() *Config {
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://fitgenie:fitgenie123@localhost:5432/fitgenie?sslmode=disable"),
 		Port:        getEnv("PORT", "8080"),
 		JWTSecret:   getEnv("JWT_SECRET", "default-secret-key"),
-		GinMode:     getEnv("GIN_MODE", "debug"),
 		ColorAnalysisEnabled: getBoolEnv("COLOR_ANALYSIS_ENABLED", true),
 		StyleAnalysisEnabled: getBoolEnv("STYLE_ANALYSIS_ENABLED", true),
 		MaxImageSize:      getInt64Env("MAX_IMAGE_SIZE", 5242880), // 5MB

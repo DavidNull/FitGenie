@@ -2,25 +2,12 @@ package main
 
 import (
 	"log"
-
-	"fitgenie/internal/api" //  handles HTTP routing and endpoints
-	"fitgenie/internal/config" // application settings
-	"fitgenie/internal/database" //  manages DB connection and migrations
-	"fitgenie/internal/services" // logic for color theory, etc.
+	"net/http"
+	"fitgenie/internal/api"
 )
 
 func main() {
-	cfg := config.Load()
-
-	if err := database.Initialize(cfg); err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
-	}
-
-	colorService := services.NewColorTheoryService()
-	router := api.SetupColorTheoryRoutes(colorService)
-
-	log.Printf("FitGenie Color Theory server starting on port %s", cfg.Port)
-	if err := router.Run(":" + cfg.Port); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	router := api.SetupRoutes()
+	log.Println("Servidor FitGenie escuchando en :8080")
+	http.ListenAndServe(":8080", router)
 }
