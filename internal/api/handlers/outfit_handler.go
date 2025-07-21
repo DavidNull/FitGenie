@@ -1,31 +1,38 @@
 package handlers
 
 import (
-	"net/http"
-	"strconv"
-
 	"fitgenie/internal/database"
 	"fitgenie/internal/models"
 	"fitgenie/internal/services"
+	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/gin-gonic/gin"
 )
 
 // OutfitHandler handles outfit-related API endpoints
 type OutfitHandler struct {
 	aiService *services.AIService
+	userService *services.UserService
 }
 
 // NewOutfitHandler creates a new outfit handler
-func NewOutfitHandler(aiService *services.AIService) *OutfitHandler {
+func NewOutfitHandler(aiService *services.AIService, userService *services.UserService) *OutfitHandler {
 	return &OutfitHandler{
 		aiService: aiService,
+		userService: userService,
 	}
 }
 
 // CreateClothingItem creates a new clothing item
 func (h *OutfitHandler) CreateClothingItem(c *gin.Context) {
 	userID := c.Param("userId")
+	user, err := h.userService.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
 
 	var item models.ClothingItem
 	if err := c.ShouldBindJSON(&item); err != nil {

@@ -40,7 +40,7 @@ FitGenie es una API para recomendaciones de outfits usando IA, color y estilo.
 
 ## Configuración
 
-Copia `.env.example` a `.env` y edítalo si lo necesitas.
+Copia `.env.example` a `.env` y edítalo si lo necesitas
 
 ---
 
