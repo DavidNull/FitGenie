@@ -59,8 +59,8 @@ func NewAIService(colorService *ColorTheoryService, styleService *StyleService) 
 	}
 }
 
-//  creates AI-powered outfit recommendations
-func (ai *AIService) GenerateOutfitRecommendations(userID uuid.UUID, items []models.ClothingItem, preferences *models.StyleProfile) ([]models.OutfitRecommendation, error) {
+// GenerateOutfitRecommendations creates AI-powered outfit recommendations
+func (ai *AIService) GenerateOutfitRecommendations(userID uuid.UUID, items []models.ClothingItem, styleProfile *models.StyleProfile, colorProfile *models.ColorProfile) ([]models.OutfitRecommendation, error) {
 	if len(items) < 2 {
 		return nil, fmt.Errorf("need at least 2 items to create outfit recommendations")
 	}
@@ -69,7 +69,7 @@ func (ai *AIService) GenerateOutfitRecommendations(userID uuid.UUID, items []mod
 	maxRecommendations := 5
 
 	for i := 0; i < maxRecommendations && len(recommendations) < maxRecommendations; i++ {
-		outfit, err := ai.generateSingleOutfit(items, preferences)
+		outfit, err := ai.generateSingleOutfit(items, styleProfile)
 		if err != nil {
 			continue
 		}
@@ -122,9 +122,10 @@ func (ai *AIService) GeneratePersonalizedRecommendations(
 
 	recommendations := []string{}
 
-	// Color-based recommendations
-	colorRecs, err := ai.colorService.GenerateColorRecommendations(colorProfile)
-	if err == nil {
+	// Color-based recommendations (use colorProfile if available)
+	var colorRecs []models.ColorRecommendation
+	if colorProfile != nil && colorProfile.ColorSeason != "" {
+		colorRecs, _ = ai.colorService.GenerateColorRecommendations(colorProfile)
 		for i, rec := range colorRecs {
 			if i < 3 { // Limit to top 3
 				recommendations = append(recommendations, fmt.Sprintf(
@@ -439,7 +440,17 @@ func joinReasons(reasons []string) string {
 }
 
 func (ai *AIService) calculateOverallOutfitScore(outfit *models.Outfit) float64 {
-	return (outfit.ColorHarmonyScore + outfit.StyleCoherenceScore) / 2.0
+	colorScore := 0.0
+	styleScore := 0.0
+
+	if outfit.ColorHarmonyScore != nil {
+		colorScore = *outfit.ColorHarmonyScore
+	}
+	if outfit.StyleCoherenceScore != nil {
+		styleScore = *outfit.StyleCoherenceScore
+	}
+
+	return (colorScore + styleScore) / 2.0
 }
 
 func (ai *AIService) generateOutfitName(items []models.ClothingItem) string {
@@ -592,9 +603,11 @@ func (ai *AIService) generateVersatilityRecommendations(items []models.ClothingI
 	// Analyze versatility of current items
 	lowVersatilityCount := 0
 	for _, item := range items {
-		// Simple versatility check based on color and pattern
-		if item.PrimaryColor != "#FFFFFF" && item.PrimaryColor != "#000000" &&
-			item.PrimaryColor != "#808080" && item.Pattern != "solid" {
+		// Simple versatility check based on color neutrality
+		isNeutralColor := item.PrimaryColor == "#FFFFFF" || item.PrimaryColor == "#000000" ||
+			item.PrimaryColor == "#808080"
+		isBasicStyle := item.Style == "" || item.Style == "casual" || item.Style == "basic"
+		if !isNeutralColor && !isBasicStyle {
 			lowVersatilityCount++
 		}
 	}
@@ -608,10 +621,12 @@ func (ai *AIService) generateVersatilityRecommendations(items []models.ClothingI
 	hasBasicWhite := false
 	hasBasicBlack := false
 	for _, item := range items {
-		if item.PrimaryColor == "#FFFFFF" && item.Pattern == "solid" {
+		// Check for basic white/black pieces (simple colors, no specific style)
+		isBasicStyle := item.Style == "" || item.Style == "casual" || item.Style == "basic"
+		if item.PrimaryColor == "#FFFFFF" && isBasicStyle {
 			hasBasicWhite = true
 		}
-		if item.PrimaryColor == "#000000" && item.Pattern == "solid" {
+		if item.PrimaryColor == "#000000" && isBasicStyle {
 			hasBasicBlack = true
 		}
 	}

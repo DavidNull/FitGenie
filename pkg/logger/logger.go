@@ -35,3 +35,8 @@ func (l *Logger) With(args ...any) *Logger {
 		Logger: l.Logger.With(args...),
 	}
 }
+
+func (l *Logger) Fatal(msg string, args ...any) {
+	l.Error(msg, args...)
+	os.Exit(1)
+}

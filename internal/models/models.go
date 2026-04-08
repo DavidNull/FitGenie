@@ -106,6 +106,61 @@ type FavoriteOutfit struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// HSL represents a color in HSL format
+type HSL struct {
+	H float64 `json:"h"` // Hue (0-360)
+	S float64 `json:"s"` // Saturation (0-100)
+	L float64 `json:"l"` // Lightness (0-100)
+}
+
+// RGB represents a color in RGB format
+type RGB struct {
+	R uint8 `json:"r"` // Red (0-255)
+	G uint8 `json:"g"` // Green (0-255)
+	B uint8 `json:"b"` // Blue (0-255)
+}
+
+// ColorInfo represents a color extracted from an image
+type ColorInfo struct {
+	Hex        string  `json:"hex"`
+	Name       string  `json:"name"`
+	Percentage float64 `json:"percentage"`
+	R          uint8   `json:"r"`
+	G          uint8   `json:"g"`
+	B          uint8   `json:"b"`
+	HSL        HSL     `json:"hsl"`
+	RGB        RGB     `json:"rgb"`
+}
+
+// ColorAnalysis contains analysis of colors from an image
+type ColorAnalysis struct {
+	DominantColors   []ColorInfo `json:"dominant_colors"`
+	ColorHarmony     string      `json:"color_harmony"`
+	ColorTemperature string      `json:"color_temperature"`
+	ColorSaturation  string      `json:"color_saturation"`
+	ColorBrightness  string      `json:"color_brightness"`
+}
+
+// ColorRecommendation represents a color recommendation for a user
+type ColorRecommendation struct {
+	ColorHex   string  `json:"color_hex"`
+	ColorName  string  `json:"color_name"`
+	Category   string  `json:"category"` // Primary, Secondary, Neutral
+	Reason     string  `json:"reason"`
+	Confidence float64 `json:"confidence"`
+}
+
+// StyleAnalysis contains style analysis for a clothing item
+type StyleAnalysis struct {
+	ClothingItemID      uuid.UUID          `json:"clothing_item_id"`
+	StyleCategory       string             `json:"style_category"`
+	Formality           string             `json:"formality"`
+	Versatility         float64            `json:"versatility"`
+	SeasonSuitability   map[string]float64 `json:"season_suitability"`
+	OccasionSuitability map[string]float64 `json:"occasion_suitability"`
+	StyleMatchScore     float64            `json:"style_match_score"`
+}
+
 // BeforeCreate hooks for UUID generation
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == uuid.Nil {

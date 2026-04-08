@@ -284,7 +284,7 @@ func (s *StyleService) AnalyzeClothingStyle(item *models.ClothingItem) (*models.
 		score := 0.0
 
 		// Check keywords in item description/name
-		itemText := strings.ToLower(item.Name + " " + item.Category + " " + item.SubCategory)
+		itemText := strings.ToLower(item.Name + " " + item.Category)
 		for _, keyword := range style.Keywords {
 			if strings.Contains(itemText, keyword) {
 				score += 2.0
@@ -295,13 +295,6 @@ func (s *StyleService) AnalyzeClothingStyle(item *models.ClothingItem) (*models.
 		for _, styleColor := range style.Colors {
 			if item.PrimaryColor == styleColor || item.SecondaryColor == styleColor {
 				score += 1.5
-			}
-		}
-
-		// Check patterns
-		for _, pattern := range style.Patterns {
-			if strings.Contains(strings.ToLower(item.Pattern), pattern) {
-				score += 1.0
 			}
 		}
 
@@ -439,11 +432,6 @@ func (s *StyleService) calculateVersatility(item *models.ClothingItem, style str
 		}
 	}
 
-	// Solid patterns are more versatile
-	if strings.ToLower(item.Pattern) == "solid" {
-		versatilityScore += 0.1
-	}
-
 	// Basic categories are more versatile
 	basicCategories := []string{"shirt", "pants", "jeans", "blazer", "cardigan"}
 	for _, basic := range basicCategories {
@@ -537,12 +525,10 @@ func (s *StyleService) calculateStyleCoherence(styles map[string]int, totalItems
 		return 1.0
 	}
 
-	dominantStyle := ""
 	maxCount := 0
-	for style, count := range styles {
+	for _, count := range styles {
 		if count > maxCount {
 			maxCount = count
-			dominantStyle = style
 		}
 	}
 

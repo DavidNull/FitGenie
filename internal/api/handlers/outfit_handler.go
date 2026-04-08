@@ -184,6 +184,7 @@ func (h *OutfitHandler) GetOutfitRecommendations(c *gin.Context) {
 		userID,
 		userClothingItems,
 		styleProfile,
+		colorProfile,
 	)
 	if err != nil {
 		h.log.Error("failed to generate recommendations", "error", err)
