@@ -22,7 +22,7 @@ services:
 
   # LocalStack for S3 simulation (photo storage)
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:3.0.0
     container_name: fitgenie-localstack
     environment:
       - SERVICES=s3
