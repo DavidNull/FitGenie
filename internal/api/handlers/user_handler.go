@@ -4,18 +4,26 @@ import (
 	"net/http"
 	"strconv"
 
-	"fitgenie/internal/database"
 	"fitgenie/internal/models"
+	"fitgenie/internal/repository"
+	"fitgenie/pkg/logger"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 // UserHandler handles user-related API endpoints
-type UserHandler struct{}
+type UserHandler struct {
+	repo repository.UserRepository
+	log  *logger.Logger
+}
 
-// NewUserHandler creates a new user handler
-func NewUserHandler() *UserHandler {
-	return &UserHandler{}
+// NewUserHandler creates a new user handler with dependencies
+func NewUserHandler(repo repository.UserRepository, log *logger.Logger) *UserHandler {
+	return &UserHandler{
+		repo: repo,
+		log:  log,
+	}
 }
 
 // CreateUser creates a new user
@@ -26,11 +34,10 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Generate UUID for new user
 	user.ID = uuid.New()
 
-	// Create user in database
-	if err := database.DB.Create(&user).Error; err != nil {
+	if err := h.repo.Create(c.Request.Context(), &user); err != nil {
+		h.log.Error("failed to create user", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
@@ -40,12 +47,15 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 // GetUser retrieves a user by ID
 func (h *UserHandler) GetUser(c *gin.Context) {
-	userID := c.Param("userId")
+	userID, err := uuid.Parse(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-	var user models.User
-	if err := database.DB.Preload("StyleProfile").Preload("ColorProfile").
-		Preload("ClothingItems").Preload("Outfits").
-		First(&user, "id = ?", userID).Error; err != nil {
+	user, err := h.repo.GetByID(c.Request.Context(), userID)
+	if err != nil {
+		h.log.Error("failed to get user", "error", err, "user_id", userID)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -55,10 +65,15 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 
 // UpdateUser updates an existing user
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	userID := c.Param("userId")
+	userID, err := uuid.Parse(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-	var user models.User
-	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
+	user, err := h.repo.GetByID(c.Request.Context(), userID)
+	if err != nil {
+		h.log.Error("failed to get user for update", "error", err, "user_id", userID)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -69,11 +84,11 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// Update allowed fields
 	user.Name = updateData.Name
 	user.Email = updateData.Email
 
-	if err := database.DB.Save(&user).Error; err != nil {
+	if err := h.repo.Update(c.Request.Context(), user); err != nil {
+		h.log.Error("failed to update user", "error", err, "user_id", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
 		return
 	}
@@ -83,9 +98,14 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 // DeleteUser deletes a user
 func (h *UserHandler) DeleteUser(c *gin.Context) {
-	userID := c.Param("userId")
+	userID, err := uuid.Parse(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-	if err := database.DB.Delete(&models.User{}, "id = ?", userID).Error; err != nil {
+	if err := h.repo.Delete(c.Request.Context(), userID); err != nil {
+		h.log.Error("failed to delete user", "error", err, "user_id", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return
 	}
@@ -95,11 +115,16 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 
 // CreateStyleProfile creates or updates a user's style profile
 func (h *UserHandler) CreateStyleProfile(c *gin.Context) {
-	userID := c.Param("userId")
+	userID, err := uuid.Parse(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
 	// Verify user exists
-	var user models.User
-	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
+	_, err = h.repo.GetByID(c.Request.Context(), userID)
+	if err != nil {
+		h.log.Error("user not found for style profile", "error", err, "user_id", userID)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -111,28 +136,12 @@ func (h *UserHandler) CreateStyleProfile(c *gin.Context) {
 	}
 
 	profile.ID = uuid.New()
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-	profile.UserID = userUUID
+	profile.UserID = userID
 
-	// Check if profile already exists
-	var existingProfile models.StyleProfile
-	if err := database.DB.First(&existingProfile, "user_id = ?", userID).Error; err == nil {
-		// Update existing profile
-		profile.ID = existingProfile.ID
-		if err := database.DB.Save(&profile).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update style profile"})
-			return
-		}
-	} else {
-		// Create new profile
-		if err := database.DB.Create(&profile).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create style profile"})
-			return
-		}
+	if err := h.repo.CreateStyleProfile(c.Request.Context(), &profile); err != nil {
+		h.log.Error("failed to create style profile", "error", err, "user_id", userID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create style profile"})
+		return
 	}
 
 	c.JSON(http.StatusCreated, profile)
@@ -140,10 +149,15 @@ func (h *UserHandler) CreateStyleProfile(c *gin.Context) {
 
 // GetStyleProfile retrieves a user's style profile
 func (h *UserHandler) GetStyleProfile(c *gin.Context) {
-	userID := c.Param("userId")
+	userID, err := uuid.Parse(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-	var profile models.StyleProfile
-	if err := database.DB.First(&profile, "user_id = ?", userID).Error; err != nil {
+	profile, err := h.repo.GetStyleProfile(c.Request.Context(), userID)
+	if err != nil {
+		h.log.Error("style profile not found", "error", err, "user_id", userID)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Style profile not found"})
 		return
 	}
@@ -153,11 +167,16 @@ func (h *UserHandler) GetStyleProfile(c *gin.Context) {
 
 // CreateColorProfile creates or updates a user's color profile
 func (h *UserHandler) CreateColorProfile(c *gin.Context) {
-	userID := c.Param("userId")
+	userID, err := uuid.Parse(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
 	// Verify user exists
-	var user models.User
-	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
+	_, err = h.repo.GetByID(c.Request.Context(), userID)
+	if err != nil {
+		h.log.Error("user not found for color profile", "error", err, "user_id", userID)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -169,28 +188,12 @@ func (h *UserHandler) CreateColorProfile(c *gin.Context) {
 	}
 
 	profile.ID = uuid.New()
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-	profile.UserID = userUUID
+	profile.UserID = userID
 
-	// Check if profile already exists
-	var existingProfile models.ColorProfile
-	if err := database.DB.First(&existingProfile, "user_id = ?", userID).Error; err == nil {
-		// Update existing profile
-		profile.ID = existingProfile.ID
-		if err := database.DB.Save(&profile).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update color profile"})
-			return
-		}
-	} else {
-		// Create new profile
-		if err := database.DB.Create(&profile).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create color profile"})
-			return
-		}
+	if err := h.repo.CreateColorProfile(c.Request.Context(), &profile); err != nil {
+		h.log.Error("failed to create color profile", "error", err, "user_id", userID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create color profile"})
+		return
 	}
 
 	c.JSON(http.StatusCreated, profile)
@@ -198,10 +201,15 @@ func (h *UserHandler) CreateColorProfile(c *gin.Context) {
 
 // GetColorProfile retrieves a user's color profile
 func (h *UserHandler) GetColorProfile(c *gin.Context) {
-	userID := c.Param("userId")
+	userID, err := uuid.Parse(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-	var profile models.ColorProfile
-	if err := database.DB.First(&profile, "user_id = ?", userID).Error; err != nil {
+	profile, err := h.repo.GetColorProfile(c.Request.Context(), userID)
+	if err != nil {
+		h.log.Error("color profile not found", "error", err, "user_id", userID)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Color profile not found"})
 		return
 	}
@@ -223,14 +231,9 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 
 	offset := (page - 1) * limit
 
-	var users []models.User
-	var total int64
-
-	// Get total count
-	database.DB.Model(&models.User{}).Count(&total)
-
-	// Get paginated users
-	if err := database.DB.Offset(offset).Limit(limit).Find(&users).Error; err != nil {
+	users, total, err := h.repo.List(c.Request.Context(), offset, limit)
+	if err != nil {
+		h.log.Error("failed to list users", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
 		return
 	}
@@ -246,59 +249,51 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	})
 }
 
-//  adds an outfit to the user's favorites
+// AddFavoriteOutfit adds an outfit to the user's favorites
 func (h *UserHandler) AddFavoriteOutfit(c *gin.Context) {
-	userID := c.Param("userId")
-	outfitID := c.Param("outfitId")
-
-	// Validate UUIDs
-	userUUID, err := uuid.Parse(userID)
+	userID, err := uuid.Parse(c.Param("userId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
-	outfitUUID, err := uuid.Parse(outfitID)
+
+	outfitID, err := uuid.Parse(c.Param("outfitId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid outfit ID"})
 		return
 	}
 
-	// Check if already favorited
-	var existing models.FavoriteOutfit
-	if err := database.DB.First(&existing, "user_id = ? AND outfit_id = ?", userUUID, outfitUUID).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Outfit already favorited"})
-		return
+	favorite := &models.FavoriteOutfit{
+		ID:       uuid.New(),
+		UserID:   userID,
+		OutfitID: outfitID,
 	}
 
-	favorite := models.FavoriteOutfit{
-		UserID:   userUUID,
-		OutfitID: outfitUUID,
-	}
-	if err := database.DB.Create(&favorite).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add favorite"})
+	if err := h.repo.AddFavoriteOutfit(c.Request.Context(), favorite); err != nil {
+		h.log.Error("failed to add favorite", "error", err, "user_id", userID, "outfit_id", outfitID)
+		c.JSON(http.StatusConflict, gin.H{"error": "Outfit already favorited"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, favorite)
 }
 
-//  removes an outfit from the user's favorites
+// RemoveFavoriteOutfit removes an outfit from the user's favorites
 func (h *UserHandler) RemoveFavoriteOutfit(c *gin.Context) {
-	userID := c.Param("userId")
-	outfitID := c.Param("outfitId")
-
-	userUUID, err := uuid.Parse(userID)
+	userID, err := uuid.Parse(c.Param("userId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
-	outfitUUID, err := uuid.Parse(outfitID)
+
+	outfitID, err := uuid.Parse(c.Param("outfitId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid outfit ID"})
 		return
 	}
 
-	if err := database.DB.Delete(&models.FavoriteOutfit{}, "user_id = ? AND outfit_id = ?", userUUID, outfitUUID).Error; err != nil {
+	if err := h.repo.RemoveFavoriteOutfit(c.Request.Context(), userID, outfitID); err != nil {
+		h.log.Error("failed to remove favorite", "error", err, "user_id", userID, "outfit_id", outfitID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove favorite"})
 		return
 	}
@@ -308,32 +303,18 @@ func (h *UserHandler) RemoveFavoriteOutfit(c *gin.Context) {
 
 // ListFavoriteOutfits lists all favorite outfits for a user
 func (h *UserHandler) ListFavoriteOutfits(c *gin.Context) {
-	userID := c.Param("userId")
-	userUUID, err := uuid.Parse(userID)
+	userID, err := uuid.Parse(c.Param("userId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
-	var favorites []models.FavoriteOutfit
-	if err := database.DB.Where("user_id = ?", userUUID).Find(&favorites).Error; err != nil {
+	favorites, err := h.repo.ListFavoriteOutfits(c.Request.Context(), userID)
+	if err != nil {
+		h.log.Error("failed to list favorites", "error", err, "user_id", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve favorites"})
 		return
 	}
 
-	// Collect outfit IDs
-	outfitIDs := make([]uuid.UUID, 0, len(favorites))
-	for _, fav := range favorites {
-		outfitIDs = append(outfitIDs, fav.OutfitID)
-	}
-
-	var outfits []models.Outfit
-	if len(outfitIDs) > 0 {
-		if err := database.DB.Where("id IN ?", outfitIDs).Find(&outfits).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve outfits"})
-			return
-		}
-	}
-
-	c.JSON(http.StatusOK, gin.H{"favorites": outfits})
+	c.JSON(http.StatusOK, gin.H{"favorites": favorites})
 }

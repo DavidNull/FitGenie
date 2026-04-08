@@ -5,11 +5,17 @@ go 1.23
 toolchain go1.24.1
 
 require (
-	github.com/google/uuid v1.3.0
-	github.com/joho/godotenv v1.4.0
+	github.com/aws/aws-sdk-go-v2 v1.30.0
+	github.com/aws/aws-sdk-go-v2/config v1.27.20
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.20
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.57.0
+	github.com/gin-gonic/gin v1.9.1
+	github.com/google/uuid v1.6.0
+	github.com/joho/godotenv v1.5.1
 	github.com/lucasb-eyer/go-colorful v1.2.0
-	gorm.io/driver/postgres v1.5.2
-	gorm.io/gorm v1.25.4
+	github.com/prometheus/client_golang v1.19.1
+	gorm.io/driver/postgres v1.5.9
+	gorm.io/gorm v1.25.10
 )
 
 require (

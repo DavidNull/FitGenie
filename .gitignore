@@ -23,7 +23,36 @@ go.work.sum
 
 # env file
 .env
+.env.local
+.env.*.local
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+/build/
+/dist/
+/bin/
+/server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test coverage
+coverage.out
+coverage.html
+*.coverprofile
+profile.cov
+
+# Docker volumes
+/data/
+
+# OS files
+.DS_Store
+Thumbs.db

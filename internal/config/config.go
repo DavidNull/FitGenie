@@ -7,24 +7,40 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	DatabaseURL string
-	Port        string
-	JWTSecret   string
+	DatabaseURL          string
+	Port                 string
+	GinMode              string
+	JWTSecret            string
 	ColorAnalysisEnabled bool
 	StyleAnalysisEnabled bool
-	MaxImageSize      int64
-	AllowedImageTypes []string
+	MaxImageSize         int64
+	AllowedImageTypes    []string
+	// S3 Configuration
+	S3Endpoint        string
+	S3Region          string
+	S3Bucket          string
+	S3AccessKeyID     string
+	S3SecretAccessKey string
+	S3UsePathStyle    bool
 }
 
 func Load() *Config {
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://fitgenie:fitgenie123@localhost:5432/fitgenie?sslmode=disable"),
-		Port:        getEnv("PORT", "8080"),
-		JWTSecret:   getEnv("JWT_SECRET", "default-secret-key"),
+		DatabaseURL:          getEnv("DATABASE_URL", "postgres://fitgenie:fitgenie123@localhost:5432/fitgenie?sslmode=disable"),
+		Port:                 getEnv("PORT", "8080"),
+		GinMode:              getEnv("GIN_MODE", "debug"),
+		JWTSecret:            getEnv("JWT_SECRET", "default-secret-key"),
 		ColorAnalysisEnabled: getBoolEnv("COLOR_ANALYSIS_ENABLED", true),
 		StyleAnalysisEnabled: getBoolEnv("STYLE_ANALYSIS_ENABLED", true),
-		MaxImageSize:      getInt64Env("MAX_IMAGE_SIZE", 5242880), // 5MB
-		AllowedImageTypes: []string{"jpg", "jpeg", "png", "webp"},
+		MaxImageSize:         getInt64Env("MAX_IMAGE_SIZE", 5242880), // 5MB
+		AllowedImageTypes:    []string{"jpg", "jpeg", "png", "webp"},
+		// S3 Configuration
+		S3Endpoint:        getEnv("S3_ENDPOINT", ""),
+		S3Region:          getEnv("S3_REGION", "us-east-1"),
+		S3Bucket:          getEnv("S3_BUCKET", "fitgenie-images"),
+		S3AccessKeyID:     getEnv("AWS_ACCESS_KEY_ID", ""),
+		S3SecretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", ""),
+		S3UsePathStyle:    getBoolEnv("S3_USE_PATH_STYLE", true),
 	}
 }
 

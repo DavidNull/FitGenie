@@ -553,3 +553,59 @@ func (c *ColorTheoryService) getColorName(hex string) string {
 
 	return "Unknown Color"
 }
+
+// AnalyzeOutfitColorHarmonyFromHex analyzes color harmony from hex color strings
+func (c *ColorTheoryService) AnalyzeOutfitColorHarmonyFromHex(colors []string) float64 {
+	if len(colors) < 2 {
+		return 1.0
+	}
+
+	colorfulColors := []colorful.Color{}
+	for _, hex := range colors {
+		if col, err := colorful.Hex(hex); err == nil {
+			colorfulColors = append(colorfulColors, col)
+		}
+	}
+
+	if len(colorfulColors) < 2 {
+		return 0.5
+	}
+
+	harmonyScore := 0.0
+	totalComparisons := 0
+
+	for i := 0; i < len(colorfulColors); i++ {
+		for j := i + 1; j < len(colorfulColors); j++ {
+			score := c.calculateColorHarmonyScore(colorfulColors[i], colorfulColors[j])
+			harmonyScore += score
+			totalComparisons++
+		}
+	}
+
+	if totalComparisons == 0 {
+		return 0.5
+	}
+
+	return harmonyScore / float64(totalComparisons)
+}
+
+// GetHarmonyColors returns colors that harmonize with the base color
+func (c *ColorTheoryService) GetHarmonyColors(baseHex, harmonyType string) ([]string, error) {
+	baseColor, err := colorful.Hex(baseHex)
+	if err != nil {
+		return nil, err
+	}
+
+	harmony, exists := c.colorHarmonies[harmonyType]
+	if !exists {
+		return nil, fmt.Errorf("unknown harmony type: %s", harmonyType)
+	}
+
+	colors := harmony.Rule(baseColor)
+	hexColors := make([]string, len(colors))
+	for i, col := range colors {
+		hexColors[i] = col.Hex()
+	}
+
+	return hexColors, nil
+}
