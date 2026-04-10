@@ -13,7 +13,7 @@ linters:
     - gofmt
     - goimports
   disable:
-    - typecheck  # Disabled - causes false positives, build already checks compilation
+    - typecheck
 
 linters-settings:
   gofmt:
