@@ -11,42 +11,35 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
-// ColorTheoryService handles color analysis and recommendations
 type ColorTheoryService struct {
 	colorSeasons   map[string]ColorSeason
 	colorHarmonies map[string]ColorHarmony
 }
 
-// ColorSeason represents seasonal color analysis
 type ColorSeason struct {
 	Name        string
-	Temperature string // warm, cool
-	Intensity   string // light, deep, soft, clear
+	Temperature string
+	Intensity   string
 	Colors      []string
 	Description string
 }
 
-// ColorHarmony represents color harmony rules
 type ColorHarmony struct {
 	Name        string
 	Description string
 	Rule        func(baseColor colorful.Color) []colorful.Color
 }
 
-// NewColorTheoryService creates a new color theory service
 func NewColorTheoryService() *ColorTheoryService {
-	service := &ColorTheoryService{
+	s := &ColorTheoryService{
 		colorSeasons:   make(map[string]ColorSeason),
 		colorHarmonies: make(map[string]ColorHarmony),
 	}
-
-	service.initializeColorSeasons()
-	service.initializeColorHarmonies()
-
-	return service
+	s.initializeColorSeasons()
+	s.initializeColorHarmonies()
+	return s
 }
 
-// initializeColorSeasons sets up the seasonal color analysis system
 func (c *ColorTheoryService) initializeColorSeasons() {
 	c.colorSeasons = map[string]ColorSeason{
 		"spring": {

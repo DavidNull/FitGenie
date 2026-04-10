@@ -6,14 +6,12 @@ import (
 	"strings"
 )
 
-// StyleService handles style analysis and recommendations
 type StyleService struct {
 	styleCategories map[string]StyleCategory
 	bodyTypeGuides  map[string]BodyTypeGuide
 	occasionStyles  map[string][]string
 }
 
-// StyleCategory represents different fashion styles
 type StyleCategory struct {
 	Name        string
 	Description string
@@ -26,7 +24,6 @@ type StyleCategory struct {
 	Occasions   []string
 }
 
-// BodyTypeGuide provides style recommendations for different body types
 type BodyTypeGuide struct {
 	Name            string
 	Description     string
@@ -36,22 +33,18 @@ type BodyTypeGuide struct {
 	StylingTips     []string
 }
 
-// NewStyleService creates a new style service
 func NewStyleService() *StyleService {
-	service := &StyleService{
+	s := &StyleService{
 		styleCategories: make(map[string]StyleCategory),
 		bodyTypeGuides:  make(map[string]BodyTypeGuide),
 		occasionStyles:  make(map[string][]string),
 	}
-
-	service.initializeStyleCategories()
-	service.initializeBodyTypeGuides()
-	service.initializeOccasionStyles()
-
-	return service
+	s.initializeStyleCategories()
+	s.initializeBodyTypeGuides()
+	s.initializeOccasionStyles()
+	return s
 }
 
-// initializeStyleCategories sets up different fashion style categories
 func (s *StyleService) initializeStyleCategories() {
 	s.styleCategories = map[string]StyleCategory{
 		"casual": {

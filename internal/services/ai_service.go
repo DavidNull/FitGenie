@@ -12,13 +12,11 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
-// combines color theory and style analysis for intelligent recommendations
 type AIService struct {
 	colorService *ColorTheoryService
 	styleService *StyleService
 }
 
-// represents a request for outfit recommendations
 type OutfitRecommendationRequest struct {
 	UserID   string
 	Occasion string
@@ -29,7 +27,6 @@ type OutfitRecommendationRequest struct {
 	MaxItems int
 }
 
-// represents the scoring of an outfit combination
 type OutfitScore struct {
 	Outfit              *models.Outfit
 	ColorHarmonyScore   float64
@@ -40,7 +37,6 @@ type OutfitScore struct {
 	Reasoning           string
 }
 
-// represents a suggested outfit
 type OutfitSuggestion struct {
 	Items      []models.ClothingItem `json:"items"`
 	Confidence float64               `json:"confidence"`
