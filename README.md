@@ -6,6 +6,29 @@ FitGenie es una API REST moderna para recomendaciones inteligentes de outfits de
 
 ![Arquitectura de FitGenie](docs/img/FitGenie%20Arquitectura.png)
 
+### Cómo funciona el sistema
+
+1. **Device se conecta**: App envía `X-Device-ID` en cada request
+2. **Auto-registro**: Backend crea usuario automáticamente si es nuevo
+3. **Sube prendas**: Usuario fotografía ropa → se sube a S3 → se guarda en PostgreSQL
+4. **Análisis IA**: El sistema analiza colorimetría y estilo de cada prenda
+5. **Recomendaciones**: Algoritmo genera outfits basados en perfiles + compatibilidad
+
+### Flujo de datos
+
+```
+┌─────────┐    ┌──────────┐    ┌─────────────┐    ┌──────────┐
+│  App    │───▶│   API    │───▶│  PostgreSQL │◀──▶│   S3     │
+│ Flutter │◀───│  (Go)    │    │  + pgvector │    │  Images  │
+└─────────┘    └──────────┘    └─────────────┘    └──────────┘
+                     │
+                     ▼
+               ┌──────────┐
+               │ Prometheus│
+               │ Métricas  │
+               └──────────┘
+```
+
 ### Componentes Principales
 
 | Componente | Tecnología | Descripción |
@@ -13,6 +36,7 @@ FitGenie es una API REST moderna para recomendaciones inteligentes de outfits de
 | **API** | Go 1.23 + Gin | Servidor HTTP con middleware de métricas |
 | **Base de Datos** | PostgreSQL + pgvector | Persistencia + búsqueda vectorial |
 | **Storage** | LocalStack S3 | Almacenamiento de fotos de prendas |
+| **Auth** | Device ID | Autenticación sin password por dispositivo |
 | **Observabilidad** | Prometheus | Métricas de requests (2xx/4xx/5xx) y latencia |
 | **Contenedores** | Docker + Compose | Orquestación local |
 
@@ -39,7 +63,37 @@ fitgenie/
 └── Makefile               # Automatización de tareas
 ```
 
-## 🚀 Inicio Rápido
+## �️ Herramientas Utilizadas
+
+### Lenguajes y Frameworks
+- **Go 1.23** - Lenguaje principal del backend
+- **Gin** - Web framework HTTP (middleware, routing, validación)
+- **GORM** - ORM para PostgreSQL (migraciones, modelos, queries)
+- **go-colorful** - Manipulación y análisis de colores
+
+### Base de Datos
+- **PostgreSQL 15** - Base de datos relacional
+- **pgvector** - Extensión para vectores (búsqueda por similitud futura)
+
+### Storage y Cloud
+- **LocalStack** - Simulación de AWS S3 para desarrollo local
+- **AWS SDK v2** - Cliente S3 para Go
+
+### Observabilidad
+- **Prometheus** - Métricas y monitoreo
+- **client_golang/prometheus** - Instrumentación HTTP
+
+### DevOps
+- **Docker** - Contenerización
+- **Docker Compose** - Orquestación multi-servicio
+- **Distroless** - Imagen minimalista para producción (~15MB)
+- **GitHub Actions** - CI/CD con linting y tests
+
+### Testing
+- **testing (stdlib)** - Tests unitarios
+- **testify** - Assertions y mocks
+
+## �🚀 Inicio Rápido
 
 ### Requisitos
 
@@ -96,13 +150,35 @@ make run
 | `AWS_ACCESS_KEY_ID` | AWS Access Key | `` |
 | `AWS_SECRET_ACCESS_KEY` | AWS Secret Key | `` |
 
+## 🔐 Autenticación
+
+FitGenie utiliza **Device ID** para autenticación sin password. Cada dispositivo envía un header `X-Device-ID` que identifica únicamente al usuario.
+
+### Cómo funciona
+
+1. **Primera vez**: El dispositivo envía cualquier string como `X-Device-ID`
+2. **Backend**: Genera un UUID determinístico a partir del Device ID
+3. **Usuario**: Se crea automáticamente un usuario asociado a ese Device ID
+4. **Sesiones posteriores**: Mismo Device ID = mismo usuario
+
+### Ejemplo
+
+```bash
+# Cualquier string funciona como device ID
+curl -H "X-Device-ID: mi-movil-android" http://localhost:8080/api/v1/users/me
+
+# Sin header, el backend genera uno nuevo
+curl http://localhost:8080/api/v1/users/me
+```
+
 ## 📡 API Endpoints
 
-### Usuarios
+### Autenticación / Usuarios
 ```
-POST   /api/v1/users                    # Crear usuario
+GET    /api/v1/users/me                 # Obtener usuario actual (por Device ID)
+POST   /api/v1/users                    # Crear usuario manual
 GET    /api/v1/users                    # Listar usuarios
-GET    /api/v1/users/:userId            # Obtener usuario
+GET    /api/v1/users/:userId            # Obtener usuario por ID
 PUT    /api/v1/users/:userId            # Actualizar usuario
 DELETE /api/v1/users/:userId            # Eliminar usuario
 ```
@@ -138,6 +214,30 @@ POST   /api/v1/users/:userId/outfits/recommendations  # Generar recomendaciones 
 POST   /api/v1/users/:userId/favorites/:outfitId   # Añadir a favoritos
 DELETE /api/v1/users/:userId/favorites/:outfitId   # Quitar de favoritos
 GET    /api/v1/users/:userId/favorites              # Listar favoritos
+```
+
+### Upload de Imágenes
+```
+POST   /api/v1/upload                      # Subir imagen (multipart/form-data, campo 'image')
+GET    /api/v1/images/:path                # Obtener URL presignada de imagen
+```
+
+**Headers requeridos**: `X-Device-ID: tu-device-id`
+
+**Ejemplo**:
+```bash
+# Subir foto de prenda
+curl -X POST http://localhost:8080/api/v1/upload \
+  -H "X-Device-ID: test-device-123" \
+  -F "image=@/ruta/a/prenda.jpg"
+
+# Respuesta
+{
+  "success": true,
+  "file_path": "users/8669a828-.../53455e6b-....jpg",
+  "url": "http://localstack:4566/fitgenie-images/...",
+  "size": 17793
+}
 ```
 
 ### Teoría del Color
@@ -265,13 +365,14 @@ FitGenie actualmente es **solo backend API**. Falta:
 - Dashboard de métricas de uso
 - Gestión de catálogo de prendas
 
-### Features Backend Pendientes
+### Features Backend - Estado
 
-| Feature | Prioridad | Descripción |
-|---------|-----------|-------------|
-| **Autenticación JWT** | Alta | Login/registro con tokens JWT |
-| **Upload de imágenes** | Alta | Endpoint para subir fotos a S3 |
-| **Análisis de imágenes** | Media | Extraer colores dominantes de fotos |
+| Feature | Estado | Descripción |
+|---------|--------|-------------|
+| **Device Auth** | ✅ Listo | Autenticación por Device ID, sin password |
+| **Upload de imágenes** | ✅ Listo | Endpoint para subir fotos a S3 |
+| **Análisis de imágenes** | 🔄 Pendiente | Extraer colores dominantes de fotos |
+| **JWT Auth** | ❌ No requerido | Login/registro tradicional (innecesario con Device Auth) |
 | **Embeddings vectoriales** | Media | Almacenar vectores de imágenes en pgvector |
 | **Búsqueda por similitud** | Media | Encontrar prendas similares por imagen |
 | **Notificaciones push** | Baja | Alertas de recomendaciones diarias |
