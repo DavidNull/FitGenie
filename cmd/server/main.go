@@ -36,7 +36,7 @@ func main() {
 		log.Fatal("failed to run migrations", "error", err)
 	}
 
-	router := api.NewRouter(db, log)
+	router := api.NewRouter(db, log, cfg)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", router)

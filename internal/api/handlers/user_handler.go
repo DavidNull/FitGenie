@@ -63,6 +63,24 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+// GetCurrentUser returns the authenticated user's profile
+func (h *UserHandler) GetCurrentUser(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	user, err := h.repo.GetByID(c.Request.Context(), userID.(uuid.UUID))
+	if err != nil {
+		h.log.Error("failed to get current user", "error", err, "user_id", userID)
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
 // UpdateUser updates an existing user
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("userId"))
