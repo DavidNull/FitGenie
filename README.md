@@ -89,7 +89,7 @@ fitgenie/
 - **testing (stdlib)** - Tests unitarios
 - **testify** - Assertions y mocks
 
-## �🚀 Inicio Rápido
+## � Inicio Rápido
 
 ### Requisitos
 
@@ -126,9 +126,9 @@ Servicios disponibles:
 # Instalar dependencias
 go mod download
 
-# Configurar PostgreSQL local y variables de entorno
+# Configurar variables de entorno (ejemplos en .env.example)
 cp .env.example .env
-# Editar .env con tus credenciales
+# Editar .env con tus credenciales reales
 
 # Ejecutar
 make run
@@ -145,6 +145,10 @@ make run
 | `S3_BUCKET` | Nombre del bucket S3 | `fitgenie-images` |
 | `AWS_ACCESS_KEY_ID` | AWS Access Key | `` |
 | `AWS_SECRET_ACCESS_KEY` | AWS Secret Key | `` |
+
+> ⚠️ **Seguridad**: Los valores por defecto son para **desarrollo local únicamente**.  
+> En producción, configura variables de entorno con secrets fuertes.  
+> Ver `.env.example` para referencia.
 
 ## 🔐 Autenticación
 
