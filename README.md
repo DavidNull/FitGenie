@@ -89,7 +89,7 @@ fitgenie/
 - **testing (stdlib)** - Tests unitarios
 - **testify** - Assertions y mocks
 
-## � Inicio Rápido
+## Inicio Rápido
 
 ### Requisitos
 
@@ -403,10 +403,11 @@ FitGenie actualmente es **solo backend API**. Falta:
 4. Push a la rama (`git push origin feature/nueva-feature`)
 5. Abre un Pull Request
 
-## 📄 Licencia
-
-MIT License - ver [LICENSE](LICENSE) para detalles
-
 ---
 
-**FitGenie** — DavidNull 🐇 | Arquitectura de microservicios para moda inteligente
+**FitGenie** — DavidNull 🐇 
+
+<p align="center">
+  <br>
+  <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb284Znc1d2N2NWtuY2NxNTg0eWEwb3kwb2t3am50bHNpeWNqamptciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OccV3kjjhZnYnhJDCf/giphy.gif" alt="Tepig" width="160" /> 
+</p>
