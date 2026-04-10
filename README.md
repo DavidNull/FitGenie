@@ -2,10 +2,6 @@
 
 FitGenie es una API REST moderna para recomendaciones inteligentes de outfits de ropa, utilizando análisis de colorimetría, teoría del estilo e IA. Diseñada con arquitectura de microservicios, observabilidad completa y despliegue en contenedores.
 
-## 🏗️ Arquitectura
-
-![Arquitectura de FitGenie](docs/img/FitGenie%20Arquitectura.png)
-
 ### Cómo funciona el sistema
 
 1. **Device se conecta**: App envía `X-Device-ID` en cada request
