@@ -57,18 +57,18 @@ class _MainScreenState extends State<MainScreen> {
       body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFE9ECF1),
+          color: const Color(0xFF1A2A3A), // Fondo oscuro azulado para iconos sin fondo
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 15,
               offset: const Offset(0, -5),
             ),
           ],
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -89,24 +89,24 @@ class _MainScreenState extends State<MainScreen> {
       onTap: () => _onItemTapped(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16), // Más grande
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF0E4A88) : Colors.transparent,
           shape: BoxShape.circle,
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF0E4A88).withOpacity(0.4),
-                    blurRadius: 12,
-                    spreadRadius: 2,
+                    color: const Color(0xFF0E4A88).withOpacity(0.5),
+                    blurRadius: 16,
+                    spreadRadius: 4,
                   ),
                 ]
               : null,
         ),
         child: Image.asset(
           iconPath,
-          width: 32,
-          height: 32,
+          width: 40, // Iconos más grandes
+          height: 40,
         ),
       ),
     );
