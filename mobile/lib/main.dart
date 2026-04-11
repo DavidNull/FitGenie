@@ -100,7 +100,6 @@ class _MainScreenState extends State<MainScreen> {
               iconPath,
               width: 28,
               height: 28,
-              color: isSelected ? const Color(0xFFE9ECF1) : const Color(0xFF0E4A88),
             ),
             const SizedBox(height: 4),
             Text(
