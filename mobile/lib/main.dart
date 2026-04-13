@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/gallery_screen.dart';
 import 'screens/camera_screen.dart';
+import 'providers/app_provider.dart';
 
 void main() {
-  runApp(const FitGenieApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AppProvider(),
+      child: const FitGenieApp(),
+    ),
+  );
 }
 
 class FitGenieApp extends StatelessWidget {

@@ -152,15 +152,17 @@ func (h *OutfitHandler) GetOutfitRecommendations(c *gin.Context) {
 		return
 	}
 
-	userClothingItems, _, err := h.clothingRepo.ListByUser(c.Request.Context(), userUUID, 0, 1000)
+	userClothingItems, total, err := h.clothingRepo.ListByUser(c.Request.Context(), userUUID, 0, 1000)
 	if err != nil {
-		h.log.Error("failed to retrieve user clothing items", "error", err)
+		h.log.Error("failed to retrieve user clothing items", "error", err, "user_id", userUUID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user clothing items"})
 		return
 	}
 
+	h.log.Info("retrieved clothing items", "user_id", userUUID, "count", len(userClothingItems), "total", total)
+
 	if len(userClothingItems) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No clothing items found for user"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No clothing items found for user", "user_id": userUUID})
 		return
 	}
 

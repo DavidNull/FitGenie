@@ -33,9 +33,14 @@ func (h *ClothingHandler) CreateClothing(c *gin.Context) {
 
 	item.ID = uuid.New()
 
+	// Get userID from context (set by DeviceAuthMiddleware)
+	if userID, exists := c.Get("userID"); exists {
+		item.UserID = userID.(uuid.UUID)
+	}
+
 	if err := h.repo.Create(c.Request.Context(), &item); err != nil {
-		h.log.Error("failed to create clothing item", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create clothing item"})
+		h.log.Error("failed to create clothing item", "error", err, "user_id", item.UserID, "item", item)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
