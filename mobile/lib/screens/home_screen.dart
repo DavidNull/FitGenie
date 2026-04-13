@@ -18,13 +18,13 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Image.asset(
                     'assets/LOGO.png',
-                    height: 60,
+                    height: 80,
                   ),
                 ],
               ),
               const SizedBox(height: 30),
               const Text(
-                '¡Bienvenido!',
+                '¡HOLA!',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,

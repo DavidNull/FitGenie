@@ -6,7 +6,7 @@ class CameraScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E4A88),
+      backgroundColor: const Color(0xFFF5F8FA), // Fondo blanco-azulado muy suave
       body: SafeArea(
         child: Column(
           children: [
@@ -17,7 +17,7 @@ class CameraScreen extends StatelessWidget {
                 children: [
                   Image.asset(
                     'assets/LOGO.png',
-                    height: 45,
+                    height: 70,
                   ),
                 ],
               ),
@@ -32,7 +32,7 @@ class CameraScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFE9ECF1),
+                        color: Color(0xFF0E4A88),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -137,7 +137,7 @@ class CameraScreen extends StatelessWidget {
                           Text(
                             'Consejo: Buena luz = mejor análisis',
                             style: TextStyle(
-                              color: Color(0xFFE9ECF1),
+                              color: Color(0xFF0E4A88),
                               fontSize: 14,
                             ),
                           ),

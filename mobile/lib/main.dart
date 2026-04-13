@@ -103,10 +103,13 @@ class _MainScreenState extends State<MainScreen> {
                 ]
               : null,
         ),
-        child: Image.asset(
-          iconPath,
-          width: 40, // Iconos más grandes
-          height: 40,
+        child: ClipOval(
+          child: Image.asset(
+            iconPath,
+            width: 44,
+            height: 44,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );
