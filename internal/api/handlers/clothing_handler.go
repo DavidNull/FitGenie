@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -25,8 +26,10 @@ func NewClothingHandler(repo repository.ClothingRepository, log *logger.Logger) 
 }
 
 func (h *ClothingHandler) CreateClothing(c *gin.Context) {
+	fmt.Printf("[DEBUG] CreateClothing called\n")
 	var item models.ClothingItem
 	if err := c.ShouldBindJSON(&item); err != nil {
+		fmt.Printf("[ERROR] Failed to bind JSON: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -65,9 +68,11 @@ func (h *ClothingHandler) GetClothing(c *gin.Context) {
 }
 
 func (h *ClothingHandler) ListClothing(c *gin.Context) {
-	userID, err := uuid.Parse(c.Query("user_id"))
+	userIDStr := c.Query("user_id")
+
+	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id", "received": userIDStr})
 		return
 	}
 
@@ -85,13 +90,15 @@ func (h *ClothingHandler) ListClothing(c *gin.Context) {
 
 	items, total, err := h.repo.ListByUser(c.Request.Context(), userID, offset, limit)
 	if err != nil {
-		h.log.Error("failed to list clothing items", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve clothing items"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "user_id": userID.String()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"items": items,
+		"items":     items,
+		"items_len": len(items),
+		"total":     total,
+		"user_id":   userID.String(),
 		"pagination": gin.H{
 			"page":  page,
 			"limit": limit,

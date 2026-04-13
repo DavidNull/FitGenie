@@ -1,7 +1,30 @@
 # FitGenie - Progreso y Pendientes
 
-**Fecha:** 2026-04-13  
+**Fecha:** 2026-04-14  
 **Sprint:** Conexión App ↔ IA Backend
+
+---
+
+## 🟡 Estado Actual (2026-04-14 00:23)
+
+### Problema Principal Identificado
+**Bug:** El orden de registro de rutas en Gin hacía que `/:id` capturara antes que la ruta vacía `""`.
+
+**Fix Aplicado:**
+- ✅ `routes.go` - Movido `clothing.GET("", ...)` antes que `clothing.GET("/:id", ...)`
+- ✅ `clothing_handler.go` - Añadido debug info a la respuesta
+- ✅ `clothing_repository.go` - Usando SQL nativo con conversión UUID→string
+
+### Estado del API
+- 🔴 API marcado como "unhealthy" en Docker - responde pero healthcheck falla
+- 🔴 `ListClothing` aún devuelve vacío - investigando por qué el handler no se ejecuta
+- 🟢 Build de Docker ahora incluye debug pasos para verificar código
+
+### Próximo Paso
+Verificar por qué el handler ListClothing no se ejecuta a pesar de que:
+1. La ruta está registrada correctamente
+2. El código tiene los campos debug
+3. El orden de rutas está arreglado
 
 ---
 

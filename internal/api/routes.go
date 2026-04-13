@@ -85,11 +85,11 @@ func NewRouter(db *database.Connection, log *logger.Logger, cfg *config.Config) 
 		clothing := v1.Group("/clothing")
 		clothing.Use(deviceAuth)
 		{
+			clothing.GET("", clothingHandler.ListClothing)
 			clothing.POST("", clothingHandler.CreateClothing)
 			clothing.GET("/:id", clothingHandler.GetClothing)
 			clothing.PUT("/:id", clothingHandler.UpdateClothing)
 			clothing.DELETE("/:id", clothingHandler.DeleteClothing)
-			clothing.GET("", clothingHandler.ListClothing)
 		}
 
 		outfits := v1.Group("/outfits")

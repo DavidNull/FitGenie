@@ -16,6 +16,9 @@ RUN go mod download && go mod verify
 # Copy source code
 COPY . .
 
+# DEBUG: Show full ListClothing response section
+RUN sed -n '97,108p' internal/api/handlers/clothing_handler.go
+
 # Build the application with optimizations
 # -ldflags "-w -s" removes debug info and symbol table for smaller binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
