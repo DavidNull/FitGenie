@@ -63,6 +63,15 @@ Todos los bugs del backend Go han sido resueltos. El sistema ahora puede:
 - `getClothingItems()` ahora incluye `?user_id=$userId` en la URL
 - Ambos métodos (`getClothingItems` y `createOutfit`) ahora obtienen el user ID de `/users/me` si es null
 
+### Fix Connection Refused (errno 111) ✅
+**Problema:** El emulador Android no puede conectar a `localhost:8080` porque desde el emulador, `localhost` es el emulador mismo.
+
+**Solución:**
+- Detectar plataforma y usar IP correcta:
+  - **Android Emulator**: `10.0.2.2:8080` (IP especial para llegar al host)
+  - **iOS Simulator**: `localhost:8080` (funciona directamente)
+  - **Dispositivo físico**: IP de tu ordenador (ej: `192.168.1.x:8080`)
+
 ### Para Probar
 1. Ejecutar app Flutter en emulador/dispositivo
 2. Verificar que se ven las 4 prendas con sus imágenes
