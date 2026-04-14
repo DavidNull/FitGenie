@@ -11,6 +11,7 @@ class ClothingItem {
   final String? style;
   final List<String> season;
   final List<String> occasion;
+  final String? imageUrl;
   final String? notes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -28,6 +29,7 @@ class ClothingItem {
     this.style,
     this.season = const [],
     this.occasion = const [],
+    this.imageUrl,
     this.notes,
     this.createdAt,
     this.updatedAt,
@@ -47,6 +49,7 @@ class ClothingItem {
       style: json['style'],
       season: List<String>.from(json['season'] ?? []),
       occasion: List<String>.from(json['occasion'] ?? []),
+      imageUrl: json['image_url'],
       notes: json['notes'],
       createdAt: json['created_at'] != null 
           ? DateTime.tryParse(json['created_at']) 
@@ -71,6 +74,7 @@ class ClothingItem {
       'style': style,
       'season': season,
       'occasion': occasion,
+      'image_url': imageUrl,
       'notes': notes,
     };
   }

@@ -58,6 +58,7 @@ type ClothingItem struct {
 	Style          string         `json:"style"`
 	Season         pq.StringArray `json:"season" gorm:"type:text[]"`
 	Occasion       pq.StringArray `json:"occasion" gorm:"type:text[]"`
+	ImageURL       string         `json:"image_url"`
 	Notes          string         `json:"notes"`
 	CreatedAt      time.Time      `json:"created_at"`
 	UpdatedAt      time.Time      `json:"updated_at"`

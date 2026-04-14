@@ -44,8 +44,22 @@ Todos los bugs del backend Go han sido resueltos. El sistema ahora puede:
 - ✅ Preparado para mostrar imágenes locales o de red
 - ✅ Carpeta `assets/clothing/` creada en pubspec.yaml
 
-### Próximo Paso
-Copiar imágenes de prueba (c*.jpg, p*.jpg) a `mobile/assets/clothing/` y probar la integración completa.
+### Imágenes Integradas ✅
+- ✅ Imágenes descargadas a `mobile/assets/clothing/` (c1.jpg, c2.jpg, p1.jpg, p2.jpg)
+- ✅ Campo `image_url` añadido al modelo Go (`ClothingItem`)
+- ✅ Campo `imageUrl` añadido al modelo Dart
+- ✅ Base de datos actualizada con rutas de imágenes:
+  - Camisetas → c1.jpg
+  - Camisas → c2.jpg
+  - Pantalones → p1.jpg
+  - Calzado → p2.jpg
+- ✅ API devuelve `image_url` en las respuestas
+- ✅ `GalleryScreen` muestra imágenes locales con `Image.asset`
+
+### Para Probar
+1. Ejecutar app Flutter en emulador/dispositivo
+2. Verificar que se ven las 4 prendas con sus imágenes
+3. Probar recomendaciones de outfits
 
 ---
 
