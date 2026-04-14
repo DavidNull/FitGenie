@@ -6,7 +6,16 @@ import '../models/outfit.dart';
 import '../models/outfit_recommendation.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8080/api/v1';
+  // Platform-specific base URLs:
+  // - Android Emulator: 10.0.2.2 (points to host localhost)
+  // - iOS Simulator: localhost
+  // - Physical device: use your computer's IP (e.g., 192.168.1.x)
+  static String get baseUrl {
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8080/api/v1';  // Android Emulator
+    }
+    return 'http://localhost:8080/api/v1';  // iOS Simulator
+  }
   
   // Device ID for authentication
   String deviceId = 'mobile-device-${DateTime.now().millisecondsSinceEpoch}';
