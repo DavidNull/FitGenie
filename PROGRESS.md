@@ -56,6 +56,13 @@ Todos los bugs del backend Go han sido resueltos. El sistema ahora puede:
 - ✅ API devuelve `image_url` en las respuestas
 - ✅ `GalleryScreen` muestra imágenes locales con `Image.asset`
 
+### Fix Error 400 ✅
+**Problema:** El endpoint `/clothing` requería `user_id` como query parameter, pero el Flutter no lo enviaba.
+
+**Solución:**
+- `getClothingItems()` ahora incluye `?user_id=$userId` en la URL
+- Ambos métodos (`getClothingItems` y `createOutfit`) ahora obtienen el user ID de `/users/me` si es null
+
 ### Para Probar
 1. Ejecutar app Flutter en emulador/dispositivo
 2. Verificar que se ven las 4 prendas con sus imágenes
