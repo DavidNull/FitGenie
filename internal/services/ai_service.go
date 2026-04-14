@@ -640,29 +640,32 @@ func (ai *AIService) generateVersatilityRecommendations(items []models.ClothingI
 func (ai *AIService) generateSingleOutfit(items []models.ClothingItem, preferences *models.StyleProfile) (*OutfitSuggestion, error) {
 	rand.Seed(time.Now().UnixNano())
 
-	requiredCategories := []string{"tops", "bottoms"}
-	optionalCategories := []string{"outerwear", "shoes", "accessories"}
+	// Find tops (Camisetas, Camisas) and bottoms (Pantalones)
+	tops := ai.filterItemsByCategory(items, "Camisetas")
+	tops = append(tops, ai.filterItemsByCategory(items, "Camisas")...)
+	bottoms := ai.filterItemsByCategory(items, "Pantalones")
+	shoes := ai.filterItemsByCategory(items, "Calzado")
+
+	if len(tops) == 0 {
+		return nil, fmt.Errorf("no tops found (Camisetas/Camisas)")
+	}
+	if len(bottoms) == 0 {
+		return nil, fmt.Errorf("no bottoms found (Pantalones)")
+	}
 
 	outfitItems := []models.ClothingItem{}
 
-	for _, category := range requiredCategories {
-		categoryItems := ai.filterItemsByCategory(items, category)
-		if len(categoryItems) == 0 {
-			return nil, fmt.Errorf("no items found for required category: %s", category)
-		}
+	// Select one top
+	selectedTop := tops[rand.Intn(len(tops))]
+	outfitItems = append(outfitItems, selectedTop)
 
-		selectedItem := categoryItems[rand.Intn(len(categoryItems))]
-		outfitItems = append(outfitItems, selectedItem)
-	}
+	// Select one bottom
+	selectedBottom := bottoms[rand.Intn(len(bottoms))]
+	outfitItems = append(outfitItems, selectedBottom)
 
-	for _, category := range optionalCategories {
-		if rand.Float64() < 0.7 {
-			categoryItems := ai.filterItemsByCategory(items, category)
-			if len(categoryItems) > 0 {
-				selectedItem := categoryItems[rand.Intn(len(categoryItems))]
-				outfitItems = append(outfitItems, selectedItem)
-			}
-		}
+	// Optionally add shoes
+	if len(shoes) > 0 && rand.Float64() < 0.8 {
+		outfitItems = append(outfitItems, shoes[rand.Intn(len(shoes))])
 	}
 
 	compatibility, reasoning, err := ai.AnalyzeOutfitCompatibility(outfitItems)
