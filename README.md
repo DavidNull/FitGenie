@@ -1,5 +1,5 @@
 # FitGenie
-
+![Logo](./mobile/assets/LOGO.png)
 API para recomendar outfits de ropa. Analiza colores y estilo para sugerir combinaciones.
 
 ## Qué hace

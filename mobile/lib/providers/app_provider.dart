@@ -40,16 +40,16 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Load clothing items
+  // Load clothing items - sin loading para mostrar UI inmediatamente
   Future<void> loadClothingItems() async {
-    _setLoading(true);
     try {
       _clothingItems = await _apiService.getClothingItems();
       _error = null;
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
+      notifyListeners();
     }
-    _setLoading(false);
   }
 
   // Load outfits

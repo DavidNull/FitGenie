@@ -14,7 +14,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
   @override
   void initState() {
     super.initState();
-    // Load data when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AppProvider>().loadClothingItems();
     });
@@ -39,25 +38,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         child: SafeArea(
           child: Consumer<AppProvider>(
             builder: (context, provider, child) {
-              if (provider.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              
-              if (provider.error != null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Error: ${provider.error}'),
-                      ElevatedButton(
-                        onPressed: () => provider.loadClothingItems(),
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
               return SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -169,67 +149,59 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _buildClothingItem(ClothingItem item) {
     final color = _getCategoryColor(item.category);
     
-    return SizedBox(
-      height: 200,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(16),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 3,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
+            child: Container(
+              color: color.withOpacity(0.1),
+              child: AspectRatio(
+                aspectRatio: 3 / 4,
+                child: _buildItemImage(item, color),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0E4A88),
                   ),
                 ),
-                child: Center(
-                  child: _buildItemImage(item, color),
+                const SizedBox(height: 4),
+                Text(
+                  item.category,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
+              ],
             ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0E4A88),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.category,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -249,27 +221,27 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildItemImage(ClothingItem item, Color color) {
-    // If image URL is available, try to load it
     if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
       if (item.imageUrl!.startsWith('assets/')) {
-        // Local asset image
         return Image.asset(
           item.imageUrl!,
           fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
           errorBuilder: (context, error, stackTrace) =>
-            Icon(Icons.checkroom, size: 48, color: color),
+            Center(child: Icon(Icons.checkroom, size: 48, color: color)),
         );
       } else {
-        // Network image
         return Image.network(
           item.imageUrl!,
           fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
           errorBuilder: (context, error, stackTrace) =>
-            Icon(Icons.checkroom, size: 48, color: color),
+            Center(child: Icon(Icons.checkroom, size: 48, color: color)),
         );
       }
     }
-    // Fallback to icon
-    return Icon(Icons.checkroom, size: 48, color: color);
+    return Center(child: Icon(Icons.checkroom, size: 48, color: color));
   }
 }

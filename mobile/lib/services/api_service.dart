@@ -1,24 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/clothing_item.dart';
 import '../models/outfit.dart';
 import '../models/outfit_recommendation.dart';
 
 class ApiService {
-  // Platform-specific base URLs:
-  // - Android Emulator: 10.0.2.2 (points to host localhost)
-  // - iOS Simulator: localhost
-  // - Physical device: use your computer's IP (e.g., 192.168.1.x)
-  static String get baseUrl {
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:8080/api/v1';  // Android Emulator
-    }
-    return 'http://localhost:8080/api/v1';  // iOS Simulator
-  }
+  // Cambiar según entorno: localhost, 10.0.2.2, IP de WSL, etc.
+  static String apiHost = '172.21.56.127';
+  static String get baseUrl => 'http://$apiHost:8080/api/v1';
   
-  // Device ID for authentication
-  String deviceId = 'mobile-device-${DateTime.now().millisecondsSinceEpoch}';
+  String deviceId = 'flutter-test-device';
   String? userId;
 
   Map<String, String> get headers => {
@@ -26,11 +17,9 @@ class ApiService {
     'X-Device-ID': deviceId,
   };
 
-  // ========== USER ==========
-  
   Future<Map<String, dynamic>> getCurrentUser() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/users/me'),
+      Uri.parse('${ApiService.baseUrl}/users/me'),
       headers: headers,
     );
     
@@ -43,15 +32,14 @@ class ApiService {
   }
 
   // ========== CLOTHING ITEMS ==========
-  
+
   Future<List<ClothingItem>> getClothingItems() async {
-    // Ensure we have a user ID first
     if (userId == null) {
       await getCurrentUser();
     }
     
     final response = await http.get(
-      Uri.parse('$baseUrl/clothing?user_id=$userId'),
+      Uri.parse('${ApiService.baseUrl}/clothing?user_id=$userId'),
       headers: headers,
     );
     
@@ -65,7 +53,7 @@ class ApiService {
 
   Future<ClothingItem> createClothingItem(ClothingItem item) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/clothing'),
+      Uri.parse('${ApiService.baseUrl}/clothing'),
       headers: headers,
       body: jsonEncode(item.toJson()),
     );
@@ -77,10 +65,10 @@ class ApiService {
   }
 
   // ========== OUTFITS ==========
-  
+
   Future<List<Outfit>> getOutfits(String userId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/users/$userId/outfits'),
+      Uri.parse('${ApiService.baseUrl}/users/$userId/outfits'),
       headers: headers,
     );
     
@@ -93,13 +81,12 @@ class ApiService {
   }
 
   Future<Outfit> createOutfit(Outfit outfit) async {
-    // Ensure we have a user ID
     if (userId == null) {
       await getCurrentUser();
     }
     
     final response = await http.post(
-      Uri.parse('$baseUrl/outfits'),
+      Uri.parse('${ApiService.baseUrl}/outfits'),
       headers: headers,
       body: jsonEncode({
         'user_id': userId,
@@ -119,13 +106,13 @@ class ApiService {
   }
 
   // ========== AI RECOMMENDATIONS ==========
-  
+
   Future<List<OutfitRecommendation>> getRecommendations(
     String userId, {
     RecommendationRequest? request,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/users/$userId/outfits/recommendations'),
+      Uri.parse('${ApiService.baseUrl}/users/$userId/outfits/recommendations'),
       headers: headers,
       body: jsonEncode(request?.toJson() ?? {}),
     );
@@ -139,11 +126,11 @@ class ApiService {
   }
 
   // ========== UPLOAD ==========
-  
+
   Future<String> uploadImage(File imageFile) async {
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('$baseUrl/upload'),
+      Uri.parse('${ApiService.baseUrl}/upload'),
     );
     
     request.headers['X-Device-ID'] = deviceId;
@@ -163,10 +150,10 @@ class ApiService {
   }
 
   // ========== COLOR THEORY ==========
-  
+
   Future<Map<String, dynamic>> getColorSeasons() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/color-theory/seasons'),
+      Uri.parse('${ApiService.baseUrl}/color-theory/seasons'),
       headers: headers,
     );
     
@@ -178,7 +165,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> analyzeColorHarmony(List<String> colors) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/color-theory/analyze-harmony'),
+      Uri.parse('${ApiService.baseUrl}/color-theory/analyze-harmony'),
       headers: headers,
       body: jsonEncode({'colors': colors}),
     );
