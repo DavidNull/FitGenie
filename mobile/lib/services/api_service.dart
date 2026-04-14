@@ -36,8 +36,13 @@ class ApiService {
   // ========== CLOTHING ITEMS ==========
   
   Future<List<ClothingItem>> getClothingItems() async {
+    // Ensure we have a user ID first
+    if (userId == null) {
+      await getCurrentUser();
+    }
+    
     final response = await http.get(
-      Uri.parse('$baseUrl/clothing'),
+      Uri.parse('$baseUrl/clothing?user_id=$userId'),
       headers: headers,
     );
     
@@ -79,10 +84,16 @@ class ApiService {
   }
 
   Future<Outfit> createOutfit(Outfit outfit) async {
+    // Ensure we have a user ID
+    if (userId == null) {
+      await getCurrentUser();
+    }
+    
     final response = await http.post(
       Uri.parse('$baseUrl/outfits'),
       headers: headers,
       body: jsonEncode({
+        'user_id': userId,
         'name': outfit.name,
         'description': outfit.description,
         'style': outfit.style,
