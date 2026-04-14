@@ -37,71 +37,109 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/LOGO.png',
-                      height: 60,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Mi armario',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0E4A88),
+          child: Consumer<AppProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              
+              if (provider.error != null) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Error: ${provider.error}'),
+                      ElevatedButton(
+                        onPressed: () => provider.loadClothingItems(),
+                        child: const Text('Reintentar'),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Tus prendas guardadas',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF1DA9B6),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    _buildFilterChip('Todos', true),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Camisetas', false),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Pantalones', false),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final itemWidth = (constraints.maxWidth - 12) / 2;
-                    return Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: List.generate(
-                        6,
-                        (index) => SizedBox(
-                          width: itemWidth,
-                          child: _buildClothingItem(index),
+                );
+              }
+
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/LOGO.png',
+                            height: 60,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Mi armario',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0E4A88),
                         ),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 8),
+                      Text(
+                        '${provider.clothingItems.length} prendas guardadas',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF1DA9B6),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          _buildFilterChip('Todos', true),
+                          const SizedBox(width: 8),
+                          _buildFilterChip('Camisetas', false),
+                          const SizedBox(width: 8),
+                          _buildFilterChip('Pantalones', false),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      if (provider.clothingItems.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(40),
+                            child: Text(
+                              'No tienes prendas guardadas.\nAñade prendas desde la cámara.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final itemWidth = (constraints.maxWidth - 12) / 2;
+                            return Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: provider.clothingItems.map((item) {
+                                return SizedBox(
+                                  width: itemWidth,
+                                  child: _buildClothingItem(item),
+                                );
+                              }).toList(),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
                 ),
-            ],
+              );
+            },
           ),
         ),
       ),
-    ),
-  ));
+    );
   }
 
   Widget _buildFilterChip(String label, bool isSelected) {
@@ -128,16 +166,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
-  Widget _buildClothingItem(int index) {
-    final colors = [
-      const Color(0xFF0E4A88),
-      const Color(0xFF1DA9B6),
-      const Color(0xFFF78400),
-      const Color(0xFF0E4A88),
-      const Color(0xFF1DA9B6),
-      const Color(0xFFF78400),
-    ];
-
+  Widget _buildClothingItem(ClothingItem item) {
+    final color = _getCategoryColor(item.category);
+    
     return SizedBox(
       height: 200,
       child: Container(
@@ -159,17 +190,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
               flex: 3,
               child: Container(
                 decoration: BoxDecoration(
-                  color: colors[index].withOpacity(0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(16),
                   ),
                 ),
                 child: Center(
-                  child: Icon(
-                    Icons.checkroom,
-                    size: 48,
-                    color: colors[index],
-                  ),
+                  child: _buildItemImage(item, color),
                 ),
               ),
             ),
@@ -181,16 +208,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Prenda ${index + 1}',
+                      item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0E4A88),
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Camiseta',
-                      style: TextStyle(
+                    Text(
+                      item.category,
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
                       ),
@@ -203,5 +232,44 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ),
       ),
     );
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'camisetas':
+      case 'camisas':
+        return const Color(0xFF0E4A88); // Azul
+      case 'pantalones':
+        return const Color(0xFF1DA9B6); // Turquesa
+      case 'calzado':
+        return const Color(0xFFF78400); // Naranja
+      default:
+        return const Color(0xFF0E4A88);
+    }
+  }
+
+  Widget _buildItemImage(ClothingItem item, Color color) {
+    // If image URL is available, try to load it
+    if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
+      if (item.imageUrl!.startsWith('assets/')) {
+        // Local asset image
+        return Image.asset(
+          item.imageUrl!,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.checkroom, size: 48, color: color),
+        );
+      } else {
+        // Network image
+        return Image.network(
+          item.imageUrl!,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.checkroom, size: 48, color: color),
+        );
+      }
+    }
+    // Fallback to icon
+    return Icon(Icons.checkroom, size: 48, color: color);
   }
 }

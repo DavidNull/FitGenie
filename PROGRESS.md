@@ -37,6 +37,16 @@ Todos los bugs del backend Go han sido resueltos. El sistema ahora puede:
 - Listar prendas por usuario
 - Generar recomendaciones de outfits con IA
 
+### Flutter Integration
+- ✅ `GalleryScreen` ahora muestra datos reales del API
+- ✅ Añadido `Consumer<AppProvider>` para estado reactivo
+- ✅ Estados: loading, error, empty, data
+- ✅ Preparado para mostrar imágenes locales o de red
+- ✅ Carpeta `assets/clothing/` creada en pubspec.yaml
+
+### Próximo Paso
+Copiar imágenes de prueba (c*.jpg, p*.jpg) a `mobile/assets/clothing/` y probar la integración completa.
+
 ---
 
 ## ✅ Completado Hoy
