@@ -49,16 +49,12 @@ func (r *clothingRepository) ListByUser(ctx context.Context, userID uuid.UUID, o
 	var items []models.ClothingItem
 	var total int64
 
-	userIDStr := userID.String()
-
-	// Use Raw SQL for debugging
-	countQuery := "SELECT COUNT(*) FROM clothing_items WHERE user_id = $1"
-	if err := r.db.WithContext(ctx).Raw(countQuery, userIDStr).Scan(&total).Error; err != nil {
+	// Use GORM for proper array handling
+	if err := r.db.WithContext(ctx).Model(&models.ClothingItem{}).Where("user_id = ?", userID.String()).Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count clothing items: %w", err)
 	}
 
-	query := "SELECT * FROM clothing_items WHERE user_id = $1 LIMIT $2 OFFSET $3"
-	if err := r.db.WithContext(ctx).Raw(query, userIDStr, limit, offset).Scan(&items).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("user_id = ?", userID.String()).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to list clothing items: %w", err)
 	}
 

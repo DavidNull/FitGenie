@@ -18,21 +18,21 @@ import (
 func DeviceAuthMiddleware(userRepo repository.UserRepository, log *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		deviceID := c.GetHeader("X-Device-ID")
-		
+
 		// Si no hay device ID, generar uno nuevo (UUID)
 		if deviceID == "" {
 			deviceID = uuid.New().String()
 			c.Header("X-Device-ID", deviceID)
 		}
-		
+
 		// Generar UUID determinístico a partir del deviceID string
 		// Esto permite cualquier formato de device ID
 		deviceUUID := generateUUIDFromString(deviceID)
-		
+
 		// Buscar usuario por device ID
 		ctx := c.Request.Context()
 		user, err := userRepo.GetByID(ctx, deviceUUID)
-		
+
 		if err != nil {
 			// Usuario no existe, crear uno nuevo
 			user = &models.User{
@@ -41,13 +41,18 @@ func DeviceAuthMiddleware(userRepo repository.UserRepository, log *logger.Logger
 				Name:  "User " + deviceID[:min(8, len(deviceID))],
 			}
 			if err := userRepo.Create(ctx, user); err != nil {
-				log.Error("failed to create device user", "error", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-				c.Abort()
-				return
+				// Si el error es por duplicate key, el usuario ya existe (race condition)
+				// En ese caso, intentamos obtener el usuario de nuevo
+				user, err = userRepo.GetByID(ctx, deviceUUID)
+				if err != nil {
+					log.Error("failed to create or get device user", "error", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+					c.Abort()
+					return
+				}
 			}
 		}
-		
+
 		// Guardar user ID en contexto
 		c.Set("userID", user.ID)
 		c.Set("deviceID", deviceUUID)

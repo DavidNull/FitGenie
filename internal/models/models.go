@@ -4,22 +4,22 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
 // User represents a user in the system
 type User struct {
-	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Email     string    `json:"email" gorm:"uniqueIndex;not null"`
-	Name      string    `json:"name" gorm:"not null"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	StyleProfile StyleProfile `json:"style_profile" gorm:"foreignKey:UserID"`
-	ColorProfile ColorProfile `json:"color_profile" gorm:"foreignKey:UserID"`
+	ID            uuid.UUID      `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Email         string         `json:"email" gorm:"uniqueIndex;not null"`
+	Name          string         `json:"name" gorm:"not null"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	StyleProfile  StyleProfile   `json:"style_profile" gorm:"foreignKey:UserID"`
+	ColorProfile  ColorProfile   `json:"color_profile" gorm:"foreignKey:UserID"`
 	ClothingItems []ClothingItem `json:"clothing_items" gorm:"foreignKey:UserID"`
 	Outfits       []Outfit       `json:"outfits" gorm:"foreignKey:UserID"`
 }
-
 
 type StyleProfile struct {
 	ID              uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -46,21 +46,21 @@ type ColorProfile struct {
 }
 
 type ClothingItem struct {
-	ID             uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	UserID         uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
-	Name           string    `json:"name" gorm:"not null"`
-	Category       string    `json:"category" gorm:"not null"`
-	Brand          string    `json:"brand"`
-	Size           string    `json:"size"`
-	PrimaryColor   string    `json:"primary_color"`
-	SecondaryColor string    `json:"secondary_color"`
-	Material       string    `json:"material"`
-	Style          string    `json:"style"`
-	Season         []string  `json:"season" gorm:"type:text[]"`
-	Occasion       []string  `json:"occasion" gorm:"type:text[]"`
-	Notes          string    `json:"notes"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID             uuid.UUID      `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	UserID         uuid.UUID      `json:"user_id" gorm:"type:uuid;not null"`
+	Name           string         `json:"name" gorm:"not null"`
+	Category       string         `json:"category" gorm:"not null"`
+	Brand          string         `json:"brand"`
+	Size           string         `json:"size"`
+	PrimaryColor   string         `json:"primary_color"`
+	SecondaryColor string         `json:"secondary_color"`
+	Material       string         `json:"material"`
+	Style          string         `json:"style"`
+	Season         pq.StringArray `json:"season" gorm:"type:text[]"`
+	Occasion       pq.StringArray `json:"occasion" gorm:"type:text[]"`
+	Notes          string         `json:"notes"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 }
 
 type Outfit struct {
@@ -69,8 +69,8 @@ type Outfit struct {
 	Name                string         `json:"name" gorm:"not null"`
 	Description         string         `json:"description"`
 	Style               string         `json:"style"`
-	Occasion            []string       `json:"occasion" gorm:"type:text[]"`
-	Season              []string       `json:"season" gorm:"type:text[]"`
+	Occasion            pq.StringArray `json:"occasion" gorm:"type:text[]"`
+	Season              pq.StringArray `json:"season" gorm:"type:text[]"`
 	Weather             string         `json:"weather"`
 	ColorHarmonyScore   *float64       `json:"color_harmony_score" gorm:"type:decimal"`
 	StyleCoherenceScore *float64       `json:"style_coherence_score" gorm:"type:decimal"`

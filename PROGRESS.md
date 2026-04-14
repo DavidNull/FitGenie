@@ -5,26 +5,31 @@
 
 ---
 
-## 🟡 Estado Actual (2026-04-14 00:23)
+## ✅ Estado Actual (2026-04-14 10:30) - BUGS FIXEADOS
 
-### Problema Principal Identificado
-**Bug:** El orden de registro de rutas en Gin hacía que `/:id` capturara antes que la ruta vacía `""`.
+### Bugs Resueltos
+| Bug | Estado | Fix |
+|-----|--------|-----|
+| `ListClothing` vacío | ✅ **FIXED** | Usar `pq.StringArray` en modelos para PostgreSQL arrays |
+| `CreateClothing` error 500 | ✅ **FIXED** | Mismo fix - arrays PostgreSQL |
+| Rutas Gin orden | ✅ **FIXED** | Mover `GET ""` antes que `GET "/:id"` en `routes.go` |
+| Device auth duplicate key | ✅ **FIXED** | Reintentar `GetByID` si `Create` falla por duplicate key |
 
-**Fix Aplicado:**
-- ✅ `routes.go` - Movido `clothing.GET("", ...)` antes que `clothing.GET("/:id", ...)`
-- ✅ `clothing_handler.go` - Añadido debug info a la respuesta
-- ✅ `clothing_repository.go` - Usando SQL nativo con conversión UUID→string
+### Root Cause
+El problema principal era que PostgreSQL arrays (`text[]`) no se escaneaban correctamente en Go `[]string`. El driver estándar devolvía strings como `{"summer","spring"}` pero GORM no los convertía automáticamente.
 
-### Estado del API
-- 🔴 API marcado como "unhealthy" en Docker - responde pero healthcheck falla
-- 🔴 `ListClothing` aún devuelve vacío - investigando por qué el handler no se ejecuta
-- 🟢 Build de Docker ahora incluye debug pasos para verificar código
+**Solución:** Usar `pq.StringArray` de `github.com/lib/pq` en los modelos:
+```go
+Season   pq.StringArray `json:"season" gorm:"type:text[]"`
+Occasion pq.StringArray `json:"occasion" gorm:"type:text[]"`
+```
 
-### Próximo Paso
-Verificar por qué el handler ListClothing no se ejecuta a pesar de que:
-1. La ruta está registrada correctamente
-2. El código tiene los campos debug
-3. El orden de rutas está arreglado
+### Estado Endpoints
+| Endpoint | Estado |
+|----------|--------|
+| `GET /api/v1/clothing` | ✅ **Funcionando** |
+| `POST /api/v1/clothing` | ✅ **Funcionando** |
+| `POST /api/v1/users/:id/outfits/recommendations` | 🔴 Error 500 (investigar AI service) |
 
 ---
 
