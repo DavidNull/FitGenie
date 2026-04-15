@@ -1,7 +1,67 @@
 # FitGenie - Progreso y Pendientes
 
-**Fecha:** 2026-04-14  
-**Sprint:** Conexión App ↔ IA Backend
+**Fecha:** 2026-04-15  
+**Sprint:** Funcionalidad Completa v1.0
+
+---
+
+## ✅ Completado Hoy (2026-04-15)
+
+### Features Nuevos
+| Feature | Descripción |
+|---------|-------------|
+| **Pantalla Recomendaciones** | Lista de outfits IA con filtros ocasión/temporada |
+| **Botón Volver** | Flecha atrás en RecommendationsScreen |
+| **Cámara Mejorada** | Selector de categoría (arriba/abajo/calzado) antes de guardar |
+| **Eliminar Prendas** | Botón delete rojo en cada prenda de galería |
+| **HomeScreen Real** | Datos reales de API (count prendas, favoritos) |
+| **AI con Outfits Completos** | Backend devuelve Outfit con ClothingItems incluidos |
+
+---
+
+## 📋 Pendientes (Por Prioridad)
+
+### 1. Funcionalidad Crítica (Offline)
+- [ ] **Ver detalle de prenda** - Al tocar prenda, ver info completa
+- [ ] **Editar prendas** - Cambiar nombre, categoría, color, etc.
+- [ ] **Filtros funcionales** - Chips "Todos/Camisetas/Pantalones" que filtren
+- [ ] **Pantalla Outfits Guardados** - Ver outfits que usuario guardó
+
+### 2. Mejoras UX
+- [ ] **Indicador de carga** - Skeleton/shimmer mientras carga API
+- [ ] **Empty states** - Mejores mensajes cuando no hay datos
+- [ ] **Toast notificaciones** - Feedback visual para acciones
+
+### 3. Funcionalidad Avanzada
+- [ ] **Perfil de usuario** - Configurar estilo preferido, colores favoritos
+- [ ] **Búsqueda** - Buscar prendas por nombre/categoría
+- [ ] **Offline mode** - Cache local para funcionar sin internet
+
+---
+
+## 🌐 ¿Por qué necesita estar ONLINE?
+
+La app **requiere conexión a internet** porque:
+
+| Componente | Dependencia |
+|------------|-------------|
+| **API Backend** | Todas las operaciones pasan por el servidor Go |
+| **Base de Datos** | PostgreSQL corre en el servidor, no local |
+| **Autenticación** | Device ID se valida en backend |
+| **IA Recomendaciones** | Algoritmo corre en servidor, no en móvil |
+
+**Alternativas para offline:**
+1. **Cache local** - Guardar datos en SQLite local, sincronizar cuando hay wifi
+2. **Edge AI** - Correr modelo IA en el móvil (más complejo, requiere ML Kit)
+3. **PWA** - Funcionar como web app con service workers
+
+**Recomendación:** Implementar cache local (SQLite + Provider) para modo offline básico.
+
+---
+
+## Historial
+
+### 2026-04-14 - Bugs Fixeados
 
 ---
 

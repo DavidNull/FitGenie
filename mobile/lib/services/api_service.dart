@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../models/clothing_item.dart';
 import '../models/outfit.dart';
 import '../models/outfit_recommendation.dart';
@@ -144,9 +145,29 @@ class ApiService {
     );
     
     request.headers['X-Device-ID'] = deviceId;
+    
+    // Detectar content-type según extensión
+    final ext = imageFile.path.toLowerCase().split('.').last;
+    String contentType;
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        contentType = 'image/jpeg';
+        break;
+      case 'png':
+        contentType = 'image/png';
+        break;
+      case 'webp':
+        contentType = 'image/webp';
+        break;
+      default:
+        contentType = 'image/jpeg';
+    }
+    
     request.files.add(await http.MultipartFile.fromPath(
       'image',
       imageFile.path,
+      contentType: MediaType('image', ext == 'jpg' ? 'jpeg' : ext),
     ));
 
     final response = await request.send();
@@ -156,7 +177,10 @@ class ApiService {
       final data = jsonDecode(responseData);
       return data['url'] ?? '';
     }
-    throw Exception('Failed to upload image: ${response.statusCode}');
+    
+    // Mostrar error detallado
+    final errorData = await response.stream.bytesToString();
+    throw Exception('Failed to upload image: ${response.statusCode} - $errorData');
   }
 
   // ========== COLOR THEORY ==========
