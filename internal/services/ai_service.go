@@ -9,6 +9,7 @@ import (
 	"fitgenie/internal/models"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/lucasb-eyer/go-colorful"
 )
 
@@ -71,9 +72,27 @@ func (ai *AIService) GenerateOutfitRecommendations(userID uuid.UUID, items []mod
 		}
 
 		if ai.isOutfitUnique(outfit, recommendations) {
+			outfitID := uuid.New()
+			colorScore := outfit.ColorScore
+			styleScore := outfit.StyleScore
+			overallScore := outfit.Confidence
+			newOutfit := models.Outfit{
+				ID:                  outfitID,
+				UserID:              userID,
+				Name:                ai.generateOutfitName(outfit.Items),
+				Style:               outfit.Items[0].Style,
+				Occasion:            pq.StringArray{outfit.Occasion},
+				Season:              pq.StringArray{outfit.Season},
+				ColorHarmonyScore:   &colorScore,
+				StyleCoherenceScore: &styleScore,
+				OverallScore:        &overallScore,
+				CreatedAt:           time.Now(),
+				ClothingItems:       outfit.Items,
+			}
 			recommendation := models.OutfitRecommendation{
 				ID:         uuid.New(),
-				OutfitID:   outfit.Items[0].ID,
+				OutfitID:   outfitID,
+				Outfit:     newOutfit,
 				Confidence: outfit.Confidence,
 				Reasoning:  outfit.Reasoning,
 				CreatedAt:  time.Now(),

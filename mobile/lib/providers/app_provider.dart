@@ -137,6 +137,19 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
+  Future<void> deleteClothingItem(String id) async {
+    _setLoading(true);
+    try {
+      await _apiService.deleteClothingItem(id);
+      _clothingItems.removeWhere((item) => item.id == id);
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+    }
+    _setLoading(false);
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();

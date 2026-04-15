@@ -3,12 +3,17 @@ import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/gallery_screen.dart';
 import 'screens/camera_screen.dart';
+import 'screens/recommendations_screen.dart';
 import 'providers/app_provider.dart';
 
 void main() {
   runApp(
     ChangeNotifierProvider(
-      create: (context) => AppProvider(),
+      create: (context) {
+        final provider = AppProvider();
+        provider.initialize();
+        return provider;
+      },
       child: const FitGenieApp(),
     ),
   );
@@ -49,6 +54,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const GalleryScreen(),
+    const RecommendationsScreen(),
     const CameraScreen(),
   ];
 
@@ -81,7 +87,8 @@ class _MainScreenState extends State<MainScreen> {
               children: [
                 _buildNavItem(0, 'assets/HOME.png'),
                 _buildNavItem(1, 'assets/GALLERY.png'),
-                _buildNavItem(2, 'assets/camera.png'),
+                _buildIconNavItem(2, Icons.auto_awesome),
+                _buildNavItem(3, 'assets/camera.png'),
               ],
             ),
           ),
@@ -96,7 +103,7 @@ class _MainScreenState extends State<MainScreen> {
       onTap: () => _onItemTapped(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16), // Más grande
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF0E4A88) : Colors.transparent,
           shape: BoxShape.circle,
@@ -117,6 +124,35 @@ class _MainScreenState extends State<MainScreen> {
             height: 44,
             fit: BoxFit.cover,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconNavItem(int index, IconData icon) {
+    final isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0E4A88) : Colors.transparent,
+          shape: BoxShape.circle,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF0E4A88).withOpacity(0.5),
+                    blurRadius: 16,
+                    spreadRadius: 4,
+                  ),
+                ]
+              : null,
+        ),
+        child: Icon(
+          icon,
+          size: 32,
+          color: isSelected ? Colors.white : const Color(0xFF0E4A88),
         ),
       ),
     );

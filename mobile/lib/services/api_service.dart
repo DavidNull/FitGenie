@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/clothing_item.dart';
 import '../models/outfit.dart';
@@ -64,7 +65,16 @@ class ApiService {
     throw Exception('Failed to create clothing item: ${response.statusCode}');
   }
 
-  // ========== OUTFITS ==========
+  Future<void> deleteClothingItem(String id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiService.baseUrl}/clothing/$id'),
+      headers: headers,
+    );
+    
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete clothing item: ${response.statusCode}');
+    }
+  }
 
   Future<List<Outfit>> getOutfits(String userId) async {
     final response = await http.get(

@@ -168,12 +168,35 @@ class _GalleryScreenState extends State<GalleryScreen> {
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(16),
             ),
-            child: Container(
-              color: color.withOpacity(0.1),
-              child: AspectRatio(
-                aspectRatio: 3 / 4,
-                child: _buildItemImage(item, color),
-              ),
+            child: Stack(
+              children: [
+                Container(
+                  color: color.withOpacity(0.1),
+                  child: AspectRatio(
+                    aspectRatio: 3 / 4,
+                    child: _buildItemImage(item, color),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () => _deleteClothingItem(item),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Padding(
@@ -204,6 +227,51 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _deleteClothingItem(ClothingItem item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar prenda'),
+        content: Text('¿Seguro que quieres eliminar "${item.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final provider = Provider.of<AppProvider>(context, listen: false);
+      try {
+        await provider.deleteClothingItem(item.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Prenda eliminada'),
+              backgroundColor: Color(0xFF1DA9B6),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   Color _getCategoryColor(String category) {
