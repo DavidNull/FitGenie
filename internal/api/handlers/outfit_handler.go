@@ -132,6 +132,42 @@ func (h *OutfitHandler) DeleteOutfit(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Outfit deleted successfully"})
 }
 
+// UpdateOutfit updates an existing outfit
+func (h *OutfitHandler) UpdateOutfit(c *gin.Context) {
+	outfitID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid outfit ID"})
+		return
+	}
+
+	// Get existing outfit to preserve user_id and created_at
+	existingOutfit, err := h.outfitRepo.GetByID(c.Request.Context(), outfitID)
+	if err != nil {
+		h.log.Error("failed to get outfit", "error", err, "outfit_id", outfitID)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Outfit not found"})
+		return
+	}
+
+	var updateData models.Outfit
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Preserve immutable fields
+	updateData.ID = outfitID
+	updateData.UserID = existingOutfit.UserID
+	updateData.CreatedAt = existingOutfit.CreatedAt
+
+	if err := h.outfitRepo.Update(c.Request.Context(), &updateData); err != nil {
+		h.log.Error("failed to update outfit", "error", err, "outfit_id", outfitID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update outfit"})
+		return
+	}
+
+	c.JSON(http.StatusOK, updateData)
+}
+
 // GetOutfitRecommendations generates AI-powered outfit recommendations
 func (h *OutfitHandler) GetOutfitRecommendations(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("userId"))

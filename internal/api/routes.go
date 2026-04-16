@@ -97,6 +97,7 @@ func NewRouter(db *database.Connection, log *logger.Logger, cfg *config.Config) 
 		{
 			outfits.POST("", outfitHandler.CreateOutfit)
 			outfits.GET("/:id", outfitHandler.GetOutfit)
+			outfits.PUT("/:id", outfitHandler.UpdateOutfit)
 			outfits.DELETE("/:id", outfitHandler.DeleteOutfit)
 		}
 
