@@ -1,13 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/clothing_item.dart';
+import '../providers/app_provider.dart';
 
-class ClothingDetailScreen extends StatelessWidget {
+class ClothingDetailScreen extends StatefulWidget {
   final ClothingItem item;
 
   const ClothingDetailScreen({
     super.key,
     required this.item,
   });
+
+  @override
+  State<ClothingDetailScreen> createState() => _ClothingDetailScreenState();
+}
+
+class _ClothingDetailScreenState extends State<ClothingDetailScreen> {
+  late ClothingItem _item;
+
+  @override
+  void initState() {
+    super.initState();
+    _item = widget.item;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,13 +71,13 @@ class ClothingDetailScreen extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    final color = _getCategoryColor(item.category);
+    final color = _getCategoryColor(_item.category);
     
     return Container(
       color: color.withOpacity(0.1),
-      child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+      child: _item.imageUrl != null && _item.imageUrl!.isNotEmpty
           ? Image.network(
-              item.imageUrl!,
+              _item.imageUrl!,
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
@@ -75,7 +90,7 @@ class ClothingDetailScreen extends StatelessWidget {
   Widget _buildPlaceholder(Color color) {
     return Center(
       child: Icon(
-        _getCategoryIcon(item.category),
+        _getCategoryIcon(_item.category),
         size: 120,
         color: color.withOpacity(0.5),
       ),
@@ -87,7 +102,7 @@ class ClothingDetailScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          item.name,
+          _item.name,
           style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -98,15 +113,15 @@ class ClothingDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: _getCategoryColor(item.category).withOpacity(0.2),
+            color: _getCategoryColor(_item.category).withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            item.category,
+            _item.category,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: _getCategoryColor(item.category),
+              color: _getCategoryColor(_item.category),
             ),
           ),
         ),
@@ -123,7 +138,7 @@ class ClothingDetailScreen extends StatelessWidget {
               child: _buildInfoCard(
                 icon: Icons.color_lens,
                 label: 'Color',
-                value: item.primaryColor ?? 'No especificado',
+                value: _item.primaryColor ?? 'No especificado',
                 color: const Color(0xFFF78400),
               ),
             ),
@@ -132,7 +147,7 @@ class ClothingDetailScreen extends StatelessWidget {
               child: _buildInfoCard(
                 icon: Icons.style,
                 label: 'Estilo',
-                value: item.style ?? 'No especificado',
+                value: _item.style ?? 'No especificado',
                 color: const Color(0xFF1DA9B6),
               ),
             ),
@@ -145,7 +160,7 @@ class ClothingDetailScreen extends StatelessWidget {
               child: _buildInfoCard(
                 icon: Icons.event,
                 label: 'Ocasión',
-                value: item.occasion?.join(', ') ?? 'No especificado',
+                value: _item.occasion.isNotEmpty ? _item.occasion.join(', ') : 'No especificado',
                 color: const Color(0xFF0E4A88),
               ),
             ),
@@ -154,7 +169,7 @@ class ClothingDetailScreen extends StatelessWidget {
               child: _buildInfoCard(
                 icon: Icons.wb_sunny,
                 label: 'Temporada',
-                value: item.season?.join(', ') ?? 'No especificado',
+                value: _item.season.isNotEmpty ? _item.season.join(', ') : 'No especificado',
                 color: const Color(0xFFF78400),
               ),
             ),
@@ -304,35 +319,142 @@ class ClothingDetailScreen extends StatelessWidget {
     );
   }
 
-  void _editItem(BuildContext context) {
-    // TODO: Navigate to edit screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Editar - próximamente')),
-    );
-  }
+  Future<void> _editItem(BuildContext context) async {
+    final nameController = TextEditingController(text: _item.name);
+    final colorController = TextEditingController(text: _item.primaryColor ?? '');
+    final styleController = TextEditingController(text: _item.style ?? '');
+    String selectedCategory = _item.category;
+    
+    final categories = ['Camisetas', 'Camisas', 'Pantalones', 'Vaqueros', 'Shorts', 
+                      'Faldas', 'Chaquetas', 'Sudaderas', 'Calzado', 'Zapatillas'];
 
-  void _deleteItem(BuildContext context) {
-    showDialog(
+    final result = await showDialog<Map<String, String?>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar prenda'),
-        content: Text('¿Seguro que quieres eliminar "${item.name}"?'),
+        title: const Text('Editar prenda'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                  hintText: 'Ej: Camiseta azul',
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedCategory,
+                decoration: const InputDecoration(labelText: 'Categoría'),
+                items: categories.map((cat) => 
+                  DropdownMenuItem(value: cat, child: Text(cat))
+                ).toList(),
+                onChanged: (value) => selectedCategory = value ?? selectedCategory,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: colorController,
+                decoration: const InputDecoration(
+                  labelText: 'Color principal',
+                  hintText: 'Ej: Azul marino',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: styleController,
+                decoration: const InputDecoration(
+                  labelText: 'Estilo',
+                  hintText: 'Ej: Casual, Formal',
+                ),
+              ),
+            ],
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancelar'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context, 'deleted');
+              Navigator.pop(context, {
+                'name': nameController.text,
+                'category': selectedCategory,
+                'color': colorController.text.isEmpty ? null : colorController.text,
+                'style': styleController.text.isEmpty ? null : styleController.text,
+              });
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0E4A88),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && mounted) {
+      final provider = Provider.of<AppProvider>(context, listen: false);
+      
+      final updatedItem = ClothingItem(
+        id: _item.id,
+        userId: _item.userId,
+        name: result['name']!,
+        category: result['category']!,
+        imageUrl: _item.imageUrl,
+        primaryColor: result['color'],
+        style: result['style'],
+        occasion: _item.occasion,
+        season: _item.season,
+        createdAt: _item.createdAt,
+        updatedAt: DateTime.now(),
+      );
+      
+      await provider.updateClothingItem(updatedItem);
+      
+      if (mounted) {
+        setState(() {
+          _item = updatedItem;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Prenda actualizada'),
+            backgroundColor: Color(0xFF1DA9B6),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteItem(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar prenda'),
+        content: Text('¿Seguro que quieres eliminar "${_item.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Eliminar'),
           ),
         ],
       ),
     );
+    
+    if (confirmed == true && mounted) {
+      final provider = Provider.of<AppProvider>(context, listen: false);
+      await provider.deleteClothingItem(_item.id);
+      if (mounted) {
+        Navigator.pop(context, 'deleted');
+      }
+    }
   }
 
   Color _getCategoryColor(String category) {

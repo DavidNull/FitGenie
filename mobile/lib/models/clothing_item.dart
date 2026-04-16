@@ -76,6 +76,8 @@ class ClothingItem {
       'occasion': occasion,
       'image_url': imageUrl,
       'notes': notes,
+      if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+      if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
     };
   }
 }

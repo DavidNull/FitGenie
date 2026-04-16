@@ -77,6 +77,19 @@ class ApiService {
     }
   }
 
+  Future<ClothingItem> updateClothingItem(ClothingItem item) async {
+    final response = await http.put(
+      Uri.parse('${ApiService.baseUrl}/clothing/${item.id}'),
+      headers: headers,
+      body: jsonEncode(item.toJson()),
+    );
+    
+    if (response.statusCode == 200) {
+      return ClothingItem.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Failed to update clothing item: ${response.statusCode}');
+  }
+
   Future<List<Outfit>> getOutfits(String userId) async {
     final response = await http.get(
       Uri.parse('${ApiService.baseUrl}/users/$userId/outfits'),
