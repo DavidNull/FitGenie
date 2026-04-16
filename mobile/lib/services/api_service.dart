@@ -129,6 +129,30 @@ class ApiService {
     throw Exception('Failed to create outfit: ${response.statusCode}');
   }
 
+  Future<Outfit> updateOutfit(Outfit outfit) async {
+    final response = await http.put(
+      Uri.parse('${ApiService.baseUrl}/outfits/${outfit.id}'),
+      headers: headers,
+      body: jsonEncode({
+        'name': outfit.name,
+        'description': outfit.description,
+        'style': outfit.style,
+        'occasion': outfit.occasion,
+        'season': outfit.season,
+        'weather': outfit.weather,
+        'rating': outfit.rating,
+        'worn': outfit.worn,
+        'favorite': outfit.favorite,
+        'notes': outfit.notes,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return Outfit.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Failed to update outfit: ${response.statusCode}');
+  }
+
   // ========== AI RECOMMENDATIONS ==========
 
   Future<List<OutfitRecommendation>> getRecommendations(

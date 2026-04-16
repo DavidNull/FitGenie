@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import 'saved_outfits_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback? onNavigateToRecommendations;
@@ -127,11 +128,21 @@ class HomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildStatCard(
-                          icon: Icons.favorite,
-                          value: provider.outfits.where((o) => o.favorite).length.toString(),
-                          label: 'Favoritos',
-                          color: const Color(0xFFF78400),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SavedOutfitsScreen(),
+                              ),
+                            );
+                          },
+                          child: _buildStatCard(
+                            icon: Icons.favorite,
+                            value: provider.outfits.where((o) => o.favorite).length.toString(),
+                            label: 'Favoritos',
+                            color: const Color(0xFFF78400),
+                          ),
                         ),
                       ),
                     ],

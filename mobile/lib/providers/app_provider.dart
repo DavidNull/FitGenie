@@ -167,6 +167,23 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
+  Future<void> updateOutfit(Outfit outfit) async {
+    _setLoading(true);
+    try {
+      final updatedOutfit = await _apiService.updateOutfit(outfit);
+      // Actualizar la lista local
+      final index = _outfits.indexWhere((o) => o.id == outfit.id);
+      if (index != -1) {
+        _outfits[index] = updatedOutfit;
+      }
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+    }
+    _setLoading(false);
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
