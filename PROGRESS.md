@@ -21,11 +21,11 @@
 
 ## 📋 Pendientes (Por Prioridad)
 
-### 1. Funcionalidad Crítica (Offline)
+### 1. Funcionalidad Crítica (Offline) ✅ COMPLETADO
 - [x] **Ver detalle de prenda** - Al tocar prenda, ver info completa
-- [ ] **Editar prendas** - Cambiar nombre, categoría, color, etc.
-- [ ] **Filtros funcionales** - Chips "Todos/Camisetas/Pantalones" que filtren
-- [ ] **Pantalla Outfits Guardados** - Ver outfits que usuario guardó
+- [x] **Editar prendas** - Cambiar nombre, categoría, color, etc.
+- [x] **Filtros funcionales** - Chips "Todos/Camisetas/Pantalones" que filtren
+- [x] **Pantalla Outfits Guardados** - Ver outfits que usuario guardó
 
 ### 2. Mejoras UX
 - [ ] **Indicador de carga** - Skeleton/shimmer mientras carga API
