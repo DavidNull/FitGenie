@@ -66,14 +66,15 @@ class _CameraScreenState extends State<CameraScreen> {
       final provider = Provider.of<AppProvider>(context, listen: false);
       
       // Si es asset local, usar directamente. Si es archivo, subir primero
-      String? imageUrl;
+      String imageUrl;
       if (_selectedLocalAsset != null) {
-        imageUrl = _selectedLocalAsset;
+        imageUrl = _selectedLocalAsset!;
       } else {
-        imageUrl = await provider.uploadImage(_selectedImage!);
-        if (imageUrl.isEmpty) {
+        final uploadedUrl = await provider.uploadImage(_selectedImage!);
+        if (uploadedUrl == null || uploadedUrl.isEmpty) {
           throw Exception('Failed to upload image');
         }
+        imageUrl = uploadedUrl;
       }
 
       final newItem = ClothingItem(
@@ -85,6 +86,9 @@ class _CameraScreenState extends State<CameraScreen> {
       );
 
       await provider.addClothingItem(newItem);
+      
+      // Recargar lista de prendas para que aparezca en galería
+      await provider.loadClothingItems();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
