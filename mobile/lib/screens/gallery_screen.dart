@@ -12,12 +12,45 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
+  String _selectedFilter = 'Todos';
+  
+  final List<String> _filters = ['Todos', 'Parte de arriba', 'Parte de abajo', 'Calzado'];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AppProvider>().loadClothingItems();
     });
+  }
+  
+  List<ClothingItem> _getFilteredItems(List<ClothingItem> items) {
+    if (_selectedFilter == 'Todos') return items;
+    
+    return items.where((item) {
+      final cat = item.category.toLowerCase();
+      switch (_selectedFilter) {
+        case 'Parte de arriba':
+          return cat.contains('top') || 
+                 cat.contains('camiseta') || 
+                 cat.contains('camisa') ||
+                 cat.contains('chaqueta') ||
+                 cat.contains('sudadera');
+        case 'Parte de abajo':
+          return cat.contains('bottom') || 
+                 cat.contains('pantalon') || 
+                 cat.contains('vaquero') ||
+                 cat.contains('short') ||
+                 cat.contains('falda');
+        case 'Calzado':
+          return cat.contains('shoe') || 
+                 cat.contains('calzado') || 
+                 cat.contains('zapatilla') ||
+                 cat.contains('zapato');
+        default:
+          return true;
+      }
+    }).toList();
   }
 
   @override
@@ -72,14 +105,19 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          _buildFilterChip('Todos', true),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('Camisetas', false),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('Pantalones', false),
-                        ],
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _filters.map((filter) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: () => setState(() => _selectedFilter = filter),
+                                child: _buildFilterChip(filter, _selectedFilter == filter),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       if (provider.clothingItems.isEmpty)
@@ -97,20 +135,40 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           ),
                         )
                       else
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final itemWidth = (constraints.maxWidth - 12) / 2;
-                            return Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
-                              children: provider.clothingItems.map((item) {
-                                return SizedBox(
-                                  width: itemWidth,
-                                  child: _buildClothingItem(item),
+                        Builder(
+                          builder: (context) {
+                            final filteredItems = _getFilteredItems(provider.clothingItems);
+                            if (filteredItems.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(40),
+                                  child: Text(
+                                    'No hay prendas en esta categoría.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            return LayoutBuilder(
+                              builder: (context, constraints) {
+                                final itemWidth = (constraints.maxWidth - 12) / 2;
+                                return Wrap(
+                                  spacing: 12,
+                                  runSpacing: 12,
+                                  children: filteredItems.map((item) {
+                                    return SizedBox(
+                                      width: itemWidth,
+                                      child: _buildClothingItem(item),
+                                    );
+                                  }).toList(),
                                 );
-                              }).toList(),
+                              },
                             );
-                          },
+                          }
                         ),
                     ],
                   ),
