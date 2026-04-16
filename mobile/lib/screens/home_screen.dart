@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
-import 'recommendations_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final VoidCallback? onNavigateToRecommendations;
+  const HomeScreen({super.key, this.onNavigateToRecommendations});
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +47,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 40),
                   GestureDetector(
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const RecommendationsScreen(),
-                        ),
-                      );
+                      onNavigateToRecommendations?.call();
                     },
                     child: Container(
                       padding: const EdgeInsets.all(20),

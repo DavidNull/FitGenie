@@ -51,10 +51,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0E4A88)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        centerTitle: true,
         title: const Text(
           'Recomendaciones IA',
           style: TextStyle(

@@ -148,26 +148,17 @@ class ApiService {
     
     // Detectar content-type según extensión
     final ext = imageFile.path.toLowerCase().split('.').last;
-    String contentType;
-    switch (ext) {
-      case 'jpg':
-      case 'jpeg':
-        contentType = 'image/jpeg';
-        break;
-      case 'png':
-        contentType = 'image/png';
-        break;
-      case 'webp':
-        contentType = 'image/webp';
-        break;
-      default:
-        contentType = 'image/jpeg';
-    }
+    final contentType = switch (ext) {
+      'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
+      'png' => MediaType('image', 'png'),
+      'webp' => MediaType('image', 'webp'),
+      _ => MediaType('image', 'jpeg'),
+    };
     
     request.files.add(await http.MultipartFile.fromPath(
       'image',
       imageFile.path,
-      contentType: MediaType('image', ext == 'jpg' ? 'jpeg' : ext),
+      contentType: contentType,
     ));
 
     final response = await request.send();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/clothing_item.dart';
+import 'clothing_detail_screen.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -149,19 +150,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _buildClothingItem(ClothingItem item) {
     final color = _getCategoryColor(item.category);
     
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: () => _viewClothingDetail(item),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
@@ -225,6 +228,16 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
           ),
         ],
+      ),
+    ),
+    );
+  }
+
+  void _viewClothingDetail(ClothingItem item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ClothingDetailScreen(item: item),
       ),
     );
   }
@@ -295,16 +308,16 @@ class _GalleryScreenState extends State<GalleryScreen> {
           item.imageUrl!,
           fit: BoxFit.cover,
           width: double.infinity,
-          height: double.infinity,
-          errorBuilder: (context, error, stackTrace) =>
-            Center(child: Icon(Icons.checkroom, size: 48, color: color)),
+          errorBuilder: (context, error, stackTrace) {
+            // Silently fail to placeholder - don't crash
+            return Center(child: Icon(Icons.checkroom, size: 48, color: color));
+          },
         );
       } else {
         return Image.network(
           item.imageUrl!,
           fit: BoxFit.cover,
           width: double.infinity,
-          height: double.infinity,
           errorBuilder: (context, error, stackTrace) =>
             Center(child: Icon(Icons.checkroom, size: 48, color: color)),
         );

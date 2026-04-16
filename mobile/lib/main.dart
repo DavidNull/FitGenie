@@ -51,12 +51,20 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const GalleryScreen(),
-    const RecommendationsScreen(),
-    const CameraScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomeScreen(
+        onNavigateToRecommendations: () => _onItemTapped(2),
+      ),
+      const GalleryScreen(),
+      const RecommendationsScreen(),
+      const CameraScreen(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {

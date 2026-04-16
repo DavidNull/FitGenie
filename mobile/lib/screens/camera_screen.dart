@@ -14,8 +14,17 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   File? _selectedImage;
+  String? _selectedLocalAsset;
   String? _selectedCategory;
   bool _isLoading = false;
+  
+  // Imágenes locales disponibles para testing
+  final List<Map<String, String>> _localAssets = [
+    {'path': 'assets/clothing/c1.jpg', 'name': 'Camiseta Azul'},
+    {'path': 'assets/clothing/c2.jpg', 'name': 'Camisa Blanca'},
+    {'path': 'assets/clothing/p1.jpg', 'name': 'Pantalón Negro'},
+    {'path': 'assets/clothing/p2.jpg', 'name': 'Zapatillas'},
+  ];
 
   final List<String> _topCategories = ['Camisetas', 'Camisas', 'Chaquetas', 'Sudaderas'];
   final List<String> _bottomCategories = ['Pantalones', 'Vaqueros', 'Shorts', 'Faldas'];
@@ -28,12 +37,20 @@ class _CameraScreenState extends State<CameraScreen> {
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
+        _selectedLocalAsset = null; // Limpiar asset local
       });
     }
   }
+  
+  void _selectLocalAsset(String assetPath) {
+    setState(() {
+      _selectedLocalAsset = assetPath;
+      _selectedImage = null; // Limpiar imagen de archivo
+    });
+  }
 
   Future<void> _saveClothingItem() async {
-    if (_selectedImage == null || _selectedCategory == null) {
+    if ((_selectedImage == null && _selectedLocalAsset == null) || _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Selecciona una imagen y categoría'),
@@ -47,10 +64,16 @@ class _CameraScreenState extends State<CameraScreen> {
 
     try {
       final provider = Provider.of<AppProvider>(context, listen: false);
-      final imageUrl = await provider.uploadImage(_selectedImage!);
       
-      if (imageUrl == null) {
-        throw Exception('Failed to upload image');
+      // Si es asset local, usar directamente. Si es archivo, subir primero
+      String? imageUrl;
+      if (_selectedLocalAsset != null) {
+        imageUrl = _selectedLocalAsset;
+      } else {
+        imageUrl = await provider.uploadImage(_selectedImage!);
+        if (imageUrl.isEmpty) {
+          throw Exception('Failed to upload image');
+        }
       }
 
       final newItem = ClothingItem(
@@ -72,6 +95,7 @@ class _CameraScreenState extends State<CameraScreen> {
         );
         setState(() {
           _selectedImage = null;
+          _selectedLocalAsset = null;
           _selectedCategory = null;
         });
       }
@@ -195,7 +219,7 @@ class _CameraScreenState extends State<CameraScreen> {
                       ],
                     ),
                     const SizedBox(height: 30),
-                    if (_selectedImage != null && _selectedCategory != null)
+                    if ((_selectedImage != null || _selectedLocalAsset != null) && _selectedCategory != null)
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -221,6 +245,18 @@ class _CameraScreenState extends State<CameraScreen> {
                           ),
                         ),
                       ),
+                    const SizedBox(height: 30),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'O usa una imagen local (modo desarrollo):',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLocalAssetsSelector(),
                     const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -336,17 +372,13 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Widget _buildImagePreview() {
-    if (_selectedImage == null) {
+    // Preview de asset local
+    if (_selectedLocalAsset != null) {
       return Container(
         width: 280,
         height: 280,
         decoration: BoxDecoration(
-          color: const Color(0xFFE9ECF1),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: const Color(0xFF1DA9B6),
-            width: 4,
-          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
@@ -355,39 +387,52 @@ class _CameraScreenState extends State<CameraScreen> {
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF78400).withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.camera_alt,
-                size: 64,
-                color: Color(0xFFF78400),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Toca la cámara o galería',
-              style: TextStyle(
-                color: Color(0xFF0E4A88),
-                fontSize: 16,
-              ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Image.asset(
+            _selectedLocalAsset!,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+    
+    // Preview de archivo seleccionado
+    if (_selectedImage != null) {
+      return Container(
+        width: 280,
+        height: 280,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Image.file(
+            _selectedImage!,
+            fit: BoxFit.cover,
+          ),
         ),
       );
     }
 
+    // Placeholder vacío
     return Container(
       width: 280,
       height: 280,
       decoration: BoxDecoration(
+        color: const Color(0xFFE9ECF1),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFF1DA9B6),
+          width: 4,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -396,12 +441,86 @@ class _CameraScreenState extends State<CameraScreen> {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Image.file(
-          _selectedImage!,
-          fit: BoxFit.cover,
-        ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF78400).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.camera_alt,
+              size: 64,
+              color: Color(0xFFF78400),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Toca la cámara o galería',
+            style: TextStyle(
+              color: Color(0xFF0E4A88),
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocalAssetsSelector() {
+    return SizedBox(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _localAssets.length,
+        itemBuilder: (context, index) {
+          final asset = _localAssets[index];
+          final isSelected = _selectedLocalAsset == asset['path'];
+          
+          return GestureDetector(
+            onTap: () => _selectLocalAsset(asset['path']!),
+            child: Container(
+              width: 80,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: isSelected
+                    ? Border.all(color: const Color(0xFF0E4A88), width: 3)
+                    : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      asset['path']!,
+                      fit: BoxFit.cover,
+                    ),
+                    if (isSelected)
+                      Container(
+                        color: const Color(0xFF0E4A88).withOpacity(0.5),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
