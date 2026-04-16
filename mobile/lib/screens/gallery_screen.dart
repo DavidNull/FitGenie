@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/clothing_item.dart';
+import '../widgets/skeleton_loading.dart';
 import 'clothing_detail_screen.dart';
+import 'camera_screen.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -120,37 +122,35 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      if (provider.clothingItems.isEmpty)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(40),
-                            child: Text(
-                              'No tienes prendas guardadas.\nAñade prendas desde la cámara.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
+                      if (provider.isLoading && provider.clothingItems.isEmpty)
+                        const SkeletonGrid(itemCount: 6)
+                      else if (provider.error != null)
+                        ErrorState(
+                          message: provider.error!,
+                          onRetry: () => provider.loadClothingItems(),
+                        )
+                      else if (provider.clothingItems.isEmpty)
+                        EmptyState(
+                          icon: Icons.checkroom,
+                          title: 'Tu armario está vacío',
+                          subtitle: 'Añade prendas para empezar a crear outfits',
+                          actionLabel: 'Añadir prenda',
+                          onAction: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const CameraScreen()),
+                            );
+                          },
                         )
                       else
                         Builder(
                           builder: (context) {
                             final filteredItems = _getFilteredItems(provider.clothingItems);
                             if (filteredItems.isEmpty) {
-                              return Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(40),
-                                  child: Text(
-                                    'No hay prendas en esta categoría.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ),
+                              return EmptyState(
+                                icon: Icons.filter_list,
+                                title: 'No hay prendas',
+                                subtitle: 'No tienes prendas en la categoría "$_selectedFilter"',
                               );
                             }
                             return LayoutBuilder(

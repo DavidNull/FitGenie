@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/outfit_recommendation.dart';
+import '../widgets/skeleton_loading.dart';
 
 class RecommendationsScreen extends StatefulWidget {
   const RecommendationsScreen({super.key});
@@ -122,17 +123,23 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                     ),
                   ),
                   Expanded(
-                    child: provider.recommendations.isEmpty
-                        ? _buildEmptyState()
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: provider.recommendations.length,
-                            itemBuilder: (context, index) {
-                              return _buildRecommendationCard(
-                                provider.recommendations[index],
-                              );
-                            },
-                          ),
+                    child: provider.isLoading && provider.recommendations.isEmpty
+                        ? const SkeletonList(itemCount: 3)
+                        : provider.recommendations.isEmpty
+                            ? EmptyState(
+                                icon: Icons.auto_awesome,
+                                title: 'Sin recomendaciones',
+                                subtitle: 'Selecciona ocasión y temporada para generar outfits con IA',
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                itemCount: provider.recommendations.length,
+                                itemBuilder: (context, index) {
+                                  return _buildRecommendationCard(
+                                    provider.recommendations[index],
+                                  );
+                                },
+                              ),
                   ),
                 ],
               );
@@ -178,38 +185,6 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           ],
           onChanged: onChanged,
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.style_outlined,
-            size: 64,
-            color: Color(0xFF1DA9B6),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'No hay recomendaciones',
-            style: TextStyle(
-              fontSize: 18,
-              color: Color(0xFF0E4A88),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Agrega más prendas para generar outfits',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
-        ],
       ),
     );
   }
