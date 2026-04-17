@@ -43,6 +43,10 @@ class _ClothingDetailScreenState extends State<ClothingDetailScreen> {
                 icon: const Icon(Icons.edit, color: Colors.white),
                 onPressed: () => _editItem(context),
               ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.white),
+                onPressed: () => _deleteItem(context),
+              ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: _buildImage(),

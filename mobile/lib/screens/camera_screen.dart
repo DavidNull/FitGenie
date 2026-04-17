@@ -138,12 +138,24 @@ class _CameraScreenState extends State<CameraScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    'assets/LOGO.png',
-                    height: 70,
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back, color: Color(0xFF0E4A88), size: 28),
                   ),
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'Añadir prenda',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0E4A88),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 48), // Balance for back button
                 ],
               ),
             ),
