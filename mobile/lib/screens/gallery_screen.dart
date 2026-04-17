@@ -65,15 +65,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFF0F7F8), // Turquesa muy suave arriba
-              Color(0xFFF0F7F8), // Más espacio del mismo color
-              Color(0xFF0E4A88), // Azul oscuro abajo
+              Color(0xFFF0F7F8),
+              Color(0xFFF0F7F8),
+              Color(0xFF0E4A88),
             ],
-            stops: [0.0, 0.4, 1.0], // 40% de la pantalla es color claro
+            stops: [0.0, 0.4, 1.0],
           ),
         ),
         child: SafeArea(
-          bottom: false, // Allow gradient to extend behind bottom nav
+          bottom: false,
           child: Consumer<AppProvider>(
             builder: (context, provider, child) {
               return RefreshIndicator(
@@ -365,11 +365,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
     switch (category.toLowerCase()) {
       case 'camisetas':
       case 'camisas':
-        return const Color(0xFF0E4A88); // Azul
+        return const Color(0xFF0E4A88);
       case 'pantalones':
-        return const Color(0xFF1DA9B6); // Turquesa
+        return const Color(0xFF1DA9B6);
       case 'calzado':
-        return const Color(0xFFF78400); // Naranja
+        return const Color(0xFFF78400);
       default:
         return const Color(0xFF0E4A88);
     }

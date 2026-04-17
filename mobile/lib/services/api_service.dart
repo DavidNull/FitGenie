@@ -7,7 +7,6 @@ import '../models/outfit.dart';
 import '../models/outfit_recommendation.dart';
 
 class ApiService {
-  // Cambiar según entorno: localhost, 10.0.2.2, IP de WSL, etc.
   static String apiHost = '172.21.48.1';
   static String get baseUrl => 'http://$apiHost:8080/api/v1';
   
@@ -184,10 +183,7 @@ class ApiService {
       'POST',
       Uri.parse('${ApiService.baseUrl}/upload'),
     );
-    
     request.headers['X-Device-ID'] = deviceId;
-    
-    // Detectar content-type según extensión
     final ext = imageFile.path.toLowerCase().split('.').last;
     final contentType = switch (ext) {
       'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
@@ -209,8 +205,6 @@ class ApiService {
       final data = jsonDecode(responseData);
       return data['url'] ?? '';
     }
-    
-    // Mostrar error detallado
     final errorData = await response.stream.bytesToString();
     throw Exception('Failed to upload image: ${response.statusCode} - $errorData');
   }

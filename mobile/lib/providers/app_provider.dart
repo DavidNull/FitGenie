@@ -18,7 +18,6 @@ class AppProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  // Getters
   String? get userId => _userId;
   List<ClothingItem> get clothingItems => _clothingItems;
   List<Outfit> get outfits => _outfits;
@@ -26,7 +25,6 @@ class AppProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Initialize
   Future<void> initialize() async {
     _setLoading(true);
     try {
@@ -43,7 +41,6 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Sample images - essential data for recommendations
   final List<Map<String, dynamic>> _sampleImages = [
     {
       'path': 'assets/clothing/c1.png',
@@ -87,29 +84,19 @@ class AppProvider extends ChangeNotifier {
     },
   ];
 
-  // Import sample images from assets to backend
   Future<void> importSampleImages() async {
     _setLoading(true);
     try {
       for (final sample in _sampleImages) {
-        // Load asset bytes
         final byteData = await rootBundle.load(sample['path']!);
         final bytes = byteData.buffer.asUint8List();
-        
-        // Save to temp file
         final tempDir = await getTemporaryDirectory();
         final fileName = sample['path']!.split('/').last;
         final tempFile = File('${tempDir.path}/$fileName');
         await tempFile.writeAsBytes(bytes);
-        
-        // Upload to S3
         final imageUrl = await uploadImage(tempFile);
-        
-        // Clean up temp file
         await tempFile.delete();
-        
         if (imageUrl != null) {
-          // Create clothing item with essential metadata for recommendations
           final item = ClothingItem(
             id: '',
             userId: _userId ?? '',
@@ -124,7 +111,6 @@ class AppProvider extends ChangeNotifier {
         }
       }
       
-      // Reload to show new items
       await loadClothingItems();
       _error = null;
     } catch (e) {
@@ -133,7 +119,6 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Load clothing items from backend only
   Future<void> loadClothingItems() async {
     _setLoading(true);
     try {
@@ -148,7 +133,6 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Load outfits
   Future<void> loadOutfits(String userId) async {
     _setLoading(true);
     try {
@@ -160,7 +144,6 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Get AI recommendations
   Future<void> getRecommendations({
     String? occasion,
     String? season,
@@ -188,7 +171,6 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Add clothing item
   Future<void> addClothingItem(ClothingItem item) async {
     _setLoading(true);
     try {
@@ -202,7 +184,6 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Upload image and create clothing item
   Future<String?> uploadImage(File imageFile) async {
     _setLoading(true);
     try {
@@ -217,7 +198,6 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // Create outfit from recommendation
   Future<void> createOutfitFromRecommendation(OutfitRecommendation rec) async {
     if (_userId == null || rec.outfit == null) return;
     
@@ -250,7 +230,6 @@ class AppProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       final updatedItem = await _apiService.updateClothingItem(item);
-      // Actualizar la lista local
       final index = _clothingItems.indexWhere((i) => i.id == item.id);
       if (index != -1) {
         _clothingItems[index] = updatedItem;
@@ -267,7 +246,6 @@ class AppProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       final updatedOutfit = await _apiService.updateOutfit(outfit);
-      // Actualizar la lista local
       final index = _outfits.indexWhere((o) => o.id == outfit.id);
       if (index != -1) {
         _outfits[index] = updatedOutfit;

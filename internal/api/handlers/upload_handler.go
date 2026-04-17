@@ -26,16 +26,13 @@ func NewUploadHandler(s3Client *storage.S3Client, log *logger.Logger) *UploadHan
 	}
 }
 
-// UploadImage sube una imagen a S3 y devuelve la URL
 func (h *UploadHandler) UploadImage(c *gin.Context) {
-	// Obtener userID del contexto (seteado por middleware)
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	// Obtener archivo del form
 	file, header, err := c.Request.FormFile("image")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No image file provided"})
@@ -43,13 +40,11 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 	}
 	defer file.Close()
 
-	// Validar tamaño (max 5MB)
 	if header.Size > 5*1024*1024 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "File too large (max 5MB)"})
 		return
 	}
 
-	// Validar tipo
 	ext := strings.ToLower(filepath.Ext(header.Filename))
 	validExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
 	if !validExts[ext] {
@@ -57,14 +52,12 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	// Generar nombre único
 	fileName := fmt.Sprintf("users/%s/%s%s", userID.(uuid.UUID).String(), uuid.New().String(), ext)
 	contentType := header.Header.Get("Content-Type")
 	if contentType == "" {
 		contentType = "image/jpeg"
 	}
 
-	// Leer archivo en memoria
 	data := make([]byte, header.Size)
 	if _, err := file.Read(data); err != nil {
 		h.log.Error("failed to read file", "error", err)
@@ -72,7 +65,6 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	// Subir a S3
 	ctx := c.Request.Context()
 	if err := h.s3Client.Upload(ctx, fileName, data, contentType); err != nil {
 		h.log.Error("failed to upload to S3", "error", err, "file", fileName)
@@ -80,11 +72,9 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	// Generar URL presignada (válida por 1 hora)
 	url, err := h.s3Client.GetPresignedURL(ctx, fileName, time.Hour)
 	if err != nil {
 		h.log.Error("failed to generate presigned URL", "error", err)
-		// Continuamos igual, devolvemos el path
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -95,7 +85,6 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 	})
 }
 
-// GetImageURL genera URL temporal para una imagen
 func (h *UploadHandler) GetImageURL(c *gin.Context) {
 	filePath := c.Param("path")
 	if filePath == "" {
@@ -112,7 +101,7 @@ func (h *UploadHandler) GetImageURL(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"url":       url,
-		"expires_in": 3600, // segundos
+		"url":        url,
+		"expires_in": 3600,
 	})
 }

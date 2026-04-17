@@ -33,7 +33,6 @@ func NewRouter(db *database.Connection, log *logger.Logger, cfg *config.Config) 
 	outfitHandler := handlers.NewOutfitHandler(outfitRepo, clothingRepo, userRepo, aiService, log)
 	colorHandler := handlers.NewColorHandler(colorService, log)
 
-	// Initialize S3 client
 	var s3Client *storage.S3Client
 	if cfg.S3Endpoint != "" {
 		var err error
@@ -52,16 +51,13 @@ func NewRouter(db *database.Connection, log *logger.Logger, cfg *config.Config) 
 
 	uploadHandler := handlers.NewUploadHandler(s3Client, log)
 
-	// Device Auth Middleware - crea usuario automáticamente
 	deviceAuth := middleware.DeviceAuthMiddleware(userRepo, log)
 
 	v1 := router.Group("/api/v1")
 	{
-		// Rutas públicas (crean usuario automáticamente)
 		v1.POST("/upload", deviceAuth, uploadHandler.UploadImage)
 		v1.GET("/images/:path", deviceAuth, uploadHandler.GetImageURL)
 
-		// User routes con device auth
 		users := v1.Group("/users")
 		users.Use(deviceAuth)
 		{
