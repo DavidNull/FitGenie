@@ -5,7 +5,6 @@ import '../models/clothing_item.dart';
 import '../widgets/skeleton_loading.dart';
 import '../utils/page_transitions.dart';
 import 'clothing_detail_screen.dart';
-import 'camera_screen.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -155,22 +154,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1DA9B6),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                PageTransitions.modalTo(
-                                  context,
-                                  const CameraScreen(),
-                                );
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text('Añadir mis propias prendas'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: const Color(0xFF0E4A88),
-                                side: const BorderSide(color: Color(0xFF0E4A88)),
                                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                               ),
                             ),
