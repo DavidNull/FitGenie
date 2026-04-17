@@ -76,13 +76,21 @@ class _ClothingDetailScreenState extends State<ClothingDetailScreen> {
     return Container(
       color: color.withOpacity(0.1),
       child: _item.imageUrl != null && _item.imageUrl!.isNotEmpty
-          ? Image.network(
-              _item.imageUrl!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (context, error, stackTrace) => _buildPlaceholder(color),
-            )
+          ? _item.imageUrl!.startsWith('assets/')
+              ? Image.asset(
+                  _item.imageUrl!,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  errorBuilder: (context, error, stackTrace) => _buildPlaceholder(color),
+                )
+              : Image.network(
+                  _item.imageUrl!,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  errorBuilder: (context, error, stackTrace) => _buildPlaceholder(color),
+                )
           : _buildPlaceholder(color),
     );
   }

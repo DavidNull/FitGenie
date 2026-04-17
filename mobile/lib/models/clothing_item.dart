@@ -15,6 +15,7 @@ class ClothingItem {
   final String? notes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final bool isLocalAsset;
 
   ClothingItem({
     required this.id,
@@ -33,6 +34,7 @@ class ClothingItem {
     this.notes,
     this.createdAt,
     this.updatedAt,
+    this.isLocalAsset = false,
   });
 
   factory ClothingItem.fromJson(Map<String, dynamic> json) {

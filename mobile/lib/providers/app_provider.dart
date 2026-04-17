@@ -40,14 +40,50 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
+  // Predefined local assets for development
+  final List<Map<String, dynamic>> _localAssets = [
+    {'id': 'local_c1', 'file': 'assets/clothing/c1.png', 'name': 'Camiseta Básica', 'category': 'Parte de arriba'},
+    {'id': 'local_c2', 'file': 'assets/clothing/c2.png', 'name': 'Camiseta Estampada', 'category': 'Parte de arriba'},
+    {'id': 'local_c3', 'file': 'assets/clothing/c3.png', 'name': 'Sudadera', 'category': 'Parte de arriba'},
+    {'id': 'local_p1', 'file': 'assets/clothing/p1.png', 'name': 'Vaqueros', 'category': 'Parte de abajo'},
+    {'id': 'local_p2', 'file': 'assets/clothing/p2.png', 'name': 'Pantalón Chino', 'category': 'Parte de abajo'},
+  ];
+
   // Load clothing items - sin loading para mostrar UI inmediatamente
   Future<void> loadClothingItems() async {
     try {
-      _clothingItems = await _apiService.getClothingItems();
+      // Load from backend
+      final backendItems = await _apiService.getClothingItems();
+      
+      // Create local asset items
+      final localItems = _localAssets.map((asset) => ClothingItem(
+        id: asset['id'] as String,
+        userId: _userId ?? 'local',
+        name: asset['name'] as String,
+        category: asset['category'] as String,
+        imageUrl: asset['file'] as String,
+        isLocalAsset: true,
+        createdAt: DateTime.now(),
+      )).toList();
+      
+      // Combine both lists (locals first)
+      _clothingItems = [...localItems, ...backendItems];
       _error = null;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      // If backend fails, show only local assets
+      final localItems = _localAssets.map((asset) => ClothingItem(
+        id: asset['id'] as String,
+        userId: _userId ?? 'local',
+        name: asset['name'] as String,
+        category: asset['category'] as String,
+        imageUrl: asset['file'] as String,
+        isLocalAsset: true,
+        createdAt: DateTime.now(),
+      )).toList();
+      
+      _clothingItems = localItems;
+      _error = 'Backend offline - mostrando prendas locales';
       notifyListeners();
     }
   }

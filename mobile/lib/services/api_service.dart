@@ -8,7 +8,7 @@ import '../models/outfit_recommendation.dart';
 
 class ApiService {
   // Cambiar según entorno: localhost, 10.0.2.2, IP de WSL, etc.
-  static String apiHost = '172.21.56.127';
+  static String apiHost = '172.21.48.1';
   static String get baseUrl => 'http://$apiHost:8080/api/v1';
   
   String deviceId = 'flutter-test-device';
