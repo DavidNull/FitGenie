@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 import '../models/clothing_item.dart';
 import '../models/outfit.dart';
 import '../models/outfit_recommendation.dart';
@@ -36,6 +39,58 @@ class AppProvider extends ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = e.toString();
+    }
+    _setLoading(false);
+  }
+
+  // Sample images configuration
+  final List<Map<String, String>> _sampleImages = [
+    {'path': 'assets/clothing/c1.png', 'name': 'Camiseta Básica Blanca', 'category': 'Parte de arriba'},
+    {'path': 'assets/clothing/c2.png', 'name': 'Camiseta Negra', 'category': 'Parte de arriba'},
+    {'path': 'assets/clothing/c3.png', 'name': 'Camiseta Gris', 'category': 'Parte de arriba'},
+    {'path': 'assets/clothing/p1.png', 'name': 'Vaqueros Azules', 'category': 'Parte de abajo'},
+    {'path': 'assets/clothing/p2.png', 'name': 'Pantalón Negro', 'category': 'Parte de abajo'},
+  ];
+
+  // Import sample images from assets to backend
+  Future<void> importSampleImages() async {
+    _setLoading(true);
+    try {
+      for (final sample in _sampleImages) {
+        // Load asset bytes
+        final byteData = await rootBundle.load(sample['path']!);
+        final bytes = byteData.buffer.asUint8List();
+        
+        // Save to temp file
+        final tempDir = await getTemporaryDirectory();
+        final fileName = sample['path']!.split('/').last;
+        final tempFile = File('${tempDir.path}/$fileName');
+        await tempFile.writeAsBytes(bytes);
+        
+        // Upload to S3
+        final imageUrl = await uploadImage(tempFile);
+        
+        // Clean up temp file
+        await tempFile.delete();
+        
+        if (imageUrl != null) {
+          // Create clothing item
+          final item = ClothingItem(
+            id: '',
+            userId: _userId ?? '',
+            name: sample['name']!,
+            category: sample['category']!,
+            imageUrl: imageUrl,
+          );
+          await addClothingItem(item);
+        }
+      }
+      
+      // Reload to show new items
+      await loadClothingItems();
+      _error = null;
+    } catch (e) {
+      _error = 'Error importing samples: $e';
     }
     _setLoading(false);
   }

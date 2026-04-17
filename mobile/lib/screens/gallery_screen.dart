@@ -138,17 +138,41 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           onRetry: () => provider.loadClothingItems(),
                         )
                       else if (provider.clothingItems.isEmpty)
-                        EmptyState(
-                          icon: Icons.checkroom,
-                          title: 'Tu armario está vacío',
-                          subtitle: 'Añade prendas para empezar a crear outfits',
-                          actionLabel: 'Añadir prenda',
-                          onAction: () {
-                            PageTransitions.modalTo(
-                              context,
-                              const CameraScreen(),
-                            );
-                          },
+                        Column(
+                          children: [
+                            EmptyState(
+                              icon: Icons.checkroom,
+                              title: 'Tu armario está vacío',
+                              subtitle: 'Añade prendas o usa las imágenes de ejemplo',
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton.icon(
+                              onPressed: () => provider.importSampleImages(),
+                              icon: const Icon(Icons.auto_fix_high),
+                              label: const Text('Usar imágenes de ejemplo'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1DA9B6),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                PageTransitions.modalTo(
+                                  context,
+                                  const CameraScreen(),
+                                );
+                              },
+                              icon: const Icon(Icons.add),
+                              label: const Text('Añadir mis propias prendas'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF0E4A88),
+                                side: const BorderSide(color: Color(0xFF0E4A88)),
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              ),
+                            ),
+                          ],
                         )
                       else
                         Builder(
