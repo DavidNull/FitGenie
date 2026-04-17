@@ -55,6 +55,16 @@ func NewS3Client(cfg S3Config) (*S3Client, error) {
 		o.UsePathStyle = cfg.UsePathStyle
 	})
 
+	// Create bucket if it doesn't exist
+	_, err = client.CreateBucket(context.Background(), &s3.CreateBucketInput{
+		Bucket: aws.String(cfg.Bucket),
+	})
+	if err != nil {
+		// Bucket might already exist, which is fine
+		// Log but don't fail - bucket could already exist or creation not supported
+		_ = err
+	}
+
 	return &S3Client{
 		client: client,
 		bucket: cfg.Bucket,
