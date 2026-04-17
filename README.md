@@ -1,202 +1,207 @@
 # FitGenie
-![Logo](./docs/img/Banner.png)
 
-App para recomendar outfits de ropa con IA. Sube tus prendas, recibe combinaciones inteligentes basadas en color, estilo y ocasión.
+Aplicación para gestionar tu armario y recibir recomendaciones de outfits con IA.
 
-## 🏗️ Arquitectura
+![FitGenie Banner](./docs/img/Banner.png)
+
+## Descripción
+
+FitGenie te permite:
+- **Gestionar tu armario**: Añadir, editar y eliminar prendas de ropa
+- **Ver detalles**: Color, estilo, temporada de cada prenda
+- **Recibir recomendaciones**: La IA sugiere outfits basados en ocasión y temporada
+- **Guardar favoritos**: Almacenar outfits que te gusten
+
+## Arquitectura de Desarrollo Local
 
 ```
-┌─────────────────┐     WiFi/Red local     ┌─────────────────┐
-│  Flutter App    │  ═══════════════════►  │  Backend Go     │
-│  (Móvil/PC)     │                        │  + PostgreSQL   │
-│                 │  ◄═════════════════════│  + S3 (Local)   │
-└─────────────────┘     HTTP API :8080     └─────────────────┘
+┌─────────────┐     WiFi/Red     ┌─────────────┐
+│ Flutter App │ ◄══════════════► │ Backend Go  │
+│  (Móvil)    │                  │ + Postgres  │
+└─────────────┘                  │ + S3 Local  │
+                                 └─────────────┘
+                                       PC (WSL)
 ```
 
-**Flujo:**
-- **Backend** corre en tu PC (Docker/WSL) con toda la lógica y la BD
-- **Flutter App** corre en móvil/emulador y se conecta vía IP al backend
-- **Ventaja:** Puedes desarrollar y probar sin deployar nada a la nube
+**Nota importante**: Esta configuración es para **desarrollo local**. Todo corre en tu PC y la app móvil se conecta vía IP.
 
-## 📱 Características
+## Requisitos
 
-### Funcionalidades Implementadas ✅
+- Docker y Docker Compose
+- Flutter SDK
+- Dispositivo móvil o emulador en la misma red WiFi
 
-| Feature | Descripción |
-|---------|-------------|
-| **Galería de prendas** | Ver todas las prendas con imágenes 3:4 |
-| **Detalle de prenda** | Al tocar, ver info completa (color, estilo, ocasión) |
-| **Añadir prendas** | Dos modos: cámara/galería (móvil) o assets locales (PC) |
-| **Eliminar prendas** | Botón rojo con confirmación en cada prenda |
-| **AI Recomendaciones** | Outfits generados según ocasión y temporada |
-| **Filtros** | Filtrar por ocasión (casual, formal, etc.) y temporada |
-| **Guardar outfits** | Añadir outfits recomendados a favoritos |
-| **Navegación** | Bottom nav persistente en todas las pantallas |
+## Inicio Rápido
 
-### Modos de Imagen
-
-**Para Móvil/Emulador (con S3):**
-1. Toca icono cámara o galería
-2. Selecciona imagen del dispositivo
-3. Se sube automáticamente a S3
-4. Se guarda URL en BD
-
-**Para Desarrollo Local (sin S3):**
-1. Coloca imágenes en `mobile/assets/clothing/`
-2. En pantalla "Cámara", sección "modo desarrollo"
-3. Toca una imagen local
-4. Se guarda path local (`assets/clothing/xxx.jpg`)
-5. No requiere subir nada
-
-**Archivos locales de ejemplo:**
-- `c1.jpg` - Camiseta Azul
-- `c2.jpg` - Camisa Blanca  
-- `p1.jpg` - Pantalón Negro
-- `p2.jpg` - Zapatillas
-
-## 🛠️ Stack Técnico
-
-### Backend
-- **Go 1.23** + Gin framework
-- **PostgreSQL** + pgvector para vectores de color
-- **LocalStack S3** para almacenamiento de imágenes (dev)
-- **Docker + Compose** para orquestación
-
-### Frontend (Flutter)
-- **Flutter 3.x** con Material 3
-- **Provider** para estado
-- **Image Picker** para cámara/galería
-- **HTTP** + **http_parser** para API calls
-
-## 🚀 Cómo usar
-
-### 1. Iniciar Backend (PC)
+### 1. Iniciar Backend
 
 ```bash
-# Docker (recomendado - todo automático)
+cd /home/david/FitGenie
 make docker-run
-
-# Ver servicios corriendo
-docker ps
-# - API en :8080
-# - PostgreSQL en :5432
-# - S3 (LocalStack) en :4566
 ```
+
+Verifica que todo esté corriendo:
+```bash
+docker ps
+```
+
+Deberías ver:
+- `fitgenie-api` (puerto 8080)
+- `fitgenie-postgres` (puerto 5432)
+- `fitgenie-localstack` (puerto 4566)
 
 ### 2. Configurar IP del Backend
 
-Edita `mobile/lib/services/api_service.dart`:
-
-```dart
-// Para emulador Android:
-static String apiHost = '10.0.2.2';  // localhost del host
-
-// Para iOS Simulator:
-static String apiHost = 'localhost';
-
-// Para dispositivo físico:
-static String apiHost = '192.168.1.xxx';  // IP de tu PC
-
-// Para Linux (desktop):
-static String apiHost = '172.21.56.127';  // IP WSL
+Obtén tu IP de WSL:
+```bash
+ip route | grep default | awk '{print $3}'
 ```
 
-### 3. Ejecutar Flutter App
+Edita `mobile/lib/services/api_service.dart`:
+```dart
+static String apiHost = '172.21.48.1';  // Tu IP de WSL
+```
+
+**Para diferentes entornos:**
+- **Emulador Android**: `10.0.2.2`
+- **iOS Simulator**: `localhost`
+- **Dispositivo físico**: IP de tu PC en la red WiFi
+- **WSL/Linux**: IP que te da el comando anterior
+
+### 3. Ejecutar Flutter
 
 ```bash
-cd mobile
-
-# Emulador Android
-flutter run -d emulator
-
-# iOS Simulator
-flutter run -d ios
-
-# Linux (desktop)
-flutter run -d linux
-
-# Tu dispositivo físico
-flutter run -d <device-id>
+cd /home/david/FitGenie/mobile
+flutter pub get
+flutter run
 ```
 
-### 4. Verificar Conexión
+## Uso de la App
 
-La app llama automáticamente a `GET /api/v1/users/me` al iniciar:
-- Si hay error de conexión → muestra error
-- Si funciona → crea usuario con `X-Device-ID` y carga prendas
+### Primera vez
 
-## 📁 Estructura del Proyecto
+1. Ve a **Galería** (estará vacía)
+2. Toca **"Usar imágenes de ejemplo"**
+3. Se importarán 5 prendas de ejemplo con datos para recomendaciones
+4. Ve a **Recomendaciones** para generar outfits con IA
+
+### Añadir prendas propias
+
+1. Ve a **Cámara** (icono + en el menú inferior)
+2. Selecciona **Cámara** o **Galería** del dispositivo
+3. Elige la categoría (Parte de arriba/Parte de abajo/Calzado)
+4. La imagen se sube automáticamente y aparece en tu armario
+
+### Generar Outfits
+
+1. Ve a **Recomendaciones**
+2. Selecciona **Ocasión** (Casual, Formal, Trabajo...)
+3. Selecciona **Temporada** (Verano, Invierno...)
+4. Toca **"Generar Outfits"**
+5. La IA sugerirá combinaciones basadas en tu armario
+6. Guarda los que te gusten en favoritos
+
+## Stack Tecnológico
+
+### Backend
+- **Go 1.23** + Gin framework
+- **PostgreSQL** para datos
+- **LocalStack S3** para imágenes (modo desarrollo)
+- **Docker Compose** para orquestación
+
+### Frontend
+- **Flutter 3.x** con Material 3
+- **Provider** para gestión de estado
+- **Image Picker** para acceso a cámara/galería
+- **HTTP** para comunicación con API
+
+## Mejoras Futuras (Firebase)
+
+Para pasar de desarrollo local a producción, se recomienda:
+
+### Firebase Integration
+```
+┌─────────────┐              ┌─────────────┐
+│ Flutter App │ ◄──────────► │   Firebase  │
+│             │              │  - Auth     │
+│             │              │  - Firestore│
+│             │              │  - Storage  │
+└─────────────┘              └─────────────┘
+```
+
+**Ventajas:**
+- **Auth**: Login con Google/Apple/email
+- **Firestore**: Base de datos en la nube (sin servidor propio)
+- **Storage**: Almacenamiento de imágenes (sin S3)
+- **Hosting**: App web si se necesita
+- **Functions**: Backend serverless si se necesita lógica extra
+
+**Implementación:**
+1. Crear proyecto en Firebase Console
+2. Añadir `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`
+3. Migrar modelos de PostgreSQL a Firestore
+4. Reemplazar S3 por Firebase Storage
+5. Deploy backend a Cloud Run o usar Firebase Functions
+
+## Estructura del Proyecto
 
 ```
 FitGenie/
-├── cmd/server/              # Entrypoint Go
+├── cmd/api/              # Entry point backend
 ├── internal/
-│   ├── api/handlers/        # HTTP handlers (clothing, outfits, upload)
-│   ├── models/              # Modelos GORM
-│   ├── repository/          # Acceso a datos PostgreSQL
-│   └── services/            # Lógica de negocio + IA
-├── pkg/                     # Librerías reutilizables
+│   ├── api/              # HTTP handlers y rutas
+│   ├── models/           # Modelos de datos
+│   ├── repository/       # Acceso a BD
+│   └── services/         # Lógica de negocio
+├── pkg/
+│   ├── logger/           # Logging
+│   └── storage/          # Cliente S3
 ├── mobile/
 │   ├── lib/
-│   │   ├── screens/         # UI (Home, Gallery, Camera, Recommendations, Detail)
-│   │   ├── providers/       # AppProvider (estado global)
-│   │   ├── services/        # ApiService (HTTP client)
-│   │   └── models/          # ClothingItem, Outfit, etc.
-│   └── assets/
-│       ├── clothing/        # Imágenes locales para testing
-│       └── *.png            # Icons de navegación
-├── docker-compose.yml       # PostgreSQL + API + S3
-└── Makefile                 # Comandos útiles
+│   │   ├── screens/      # Pantallas Flutter
+│   │   ├── providers/    # Estado con Provider
+│   │   ├── services/     # API client
+│   │   └── models/       # Modelos Dart
+│   └── assets/           # Imágenes y recursos
+├── docker-compose.yml    # Configuración Docker
+└── README.md
 ```
 
-## 🔌 Endpoints API
+## Comandos Útiles
 
-### Auth
-Todas las peticiones requieren header `X-Device-ID`.
+```bash
+# Backend
+make docker-run           # Iniciar todo
+make docker-stop          # Detener todo
+docker logs fitgenie-api  # Ver logs del API
 
-### Users
-- `GET /api/v1/users/me` - Usuario actual (auto-crea si no existe)
+# Frontend
+cd mobile
+flutter pub get           # Instalar dependencias
+flutter run               # Ejecutar app
+flutter build apk         # Build Android
+flutter build ios         # Build iOS
 
-### Clothing (Prendas)
-- `GET /api/v1/clothing?user_id=xxx` - Listar prendas del usuario
-- `POST /api/v1/clothing` - Crear prenda
-- `DELETE /api/v1/clothing/:id` - Eliminar prenda
+# BD
+make migrate-up           # Aplicar migraciones
+make migrate-down         # Revertir migraciones
+```
 
-### Outfits
-- `POST /api/v1/outfits` - Crear outfit manualmente
-- `POST /api/v1/users/:id/outfits/recommendations` - Generar con IA
+## Solución de Problemas
 
-### Upload
-- `POST /api/v1/upload` - Subir imagen (multipart/form-data, campo `image`)
-- Soporta: JPG, JPEG, PNG, WEBP (max 5MB)
+### "Connection refused" o timeout
+- Verifica que la IP en `api_service.dart` sea correcta
+- Comprueba que los contenedores estén corriendo: `docker ps`
+- Reinicia: `docker-compose restart api`
 
-## 📝 Notas de Desarrollo
+### Error al subir imágenes
+- Verifica que LocalStack esté corriendo: `docker ps | grep localstack`
+- Reinicia todos los servicios: `make docker-stop && make docker-run`
 
-### Solución de Problemas
+### La app no carga prendas
+- Comprueba conexión: `curl http://TU_IP:8080/api/v1/users/me -H "X-Device-ID: test"`
+- Verifica logs del backend: `docker logs fitgenie-api`
 
-**Error "unable to load asset":**
-Las imágenes en `assets/clothing/` son solo para desarrollo local. Si la BD tiene referencias a assets que no existen, la app muestra placeholder en lugar de crashear.
+## Licencia
 
-**Error de conexión "Connection refused":**
-Verifica que:
-1. Docker está corriendo (`docker ps`)
-2. La IP en `api_service.dart` es correcta para tu plataforma
-3. El firewall no bloquea el puerto 8080
-
-**Hot Reload vs Hot Restart:**
-- Hot Reload (`r`) - Actualiza UI pero no estado
-- Hot Restart (`R`) - Reinicia app, recarga assets y código
-
-### Archivos Clave
-
-| Archivo | Descripción |
-|---------|-------------|
-| `mobile/lib/services/api_service.dart` | Configurar IP del backend |
-| `mobile/lib/providers/app_provider.dart` | Estado global de la app |
-| `mobile/lib/screens/camera_screen.dart` | Lógica de añadir prendas (dual: upload/local) |
-| `mobile/lib/screens/gallery_screen.dart` | Grid de prendas con navegación a detalle |
-| `mobile/lib/screens/recommendations_screen.dart` | Outfits generados por IA |
-
----
-
-**FitGenie** — Por DavidNull
+MIT License - Ver LICENSE para detalles.
