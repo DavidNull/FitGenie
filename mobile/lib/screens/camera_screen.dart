@@ -1,9 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/clothing_item.dart';
@@ -17,17 +14,8 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   File? _selectedImage;
-  String? _selectedLocalAsset;
   String? _selectedCategory;
   bool _isLoading = false;
-  
-  // Imágenes locales disponibles para testing
-  final List<Map<String, String>> _localAssets = [
-    {'path': 'assets/clothing/c1.jpg', 'name': 'Camiseta Azul'},
-    {'path': 'assets/clothing/c2.jpg', 'name': 'Camisa Blanca'},
-    {'path': 'assets/clothing/p1.jpg', 'name': 'Pantalón Negro'},
-    {'path': 'assets/clothing/p2.jpg', 'name': 'Zapatillas'},
-  ];
 
   final List<String> _topCategories = ['Camisetas', 'Camisas', 'Chaquetas', 'Sudaderas'];
   final List<String> _bottomCategories = ['Pantalones', 'Vaqueros', 'Shorts', 'Faldas'];
@@ -40,20 +28,12 @@ class _CameraScreenState extends State<CameraScreen> {
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
-        _selectedLocalAsset = null; // Limpiar asset local
       });
     }
   }
-  
-  void _selectLocalAsset(String assetPath) {
-    setState(() {
-      _selectedLocalAsset = assetPath;
-      _selectedImage = null; // Limpiar imagen de archivo
-    });
-  }
 
   Future<void> _saveClothingItem() async {
-    if ((_selectedImage == null && _selectedLocalAsset == null) || _selectedCategory == null) {
+    if (_selectedImage == null || _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Selecciona una imagen y categoría'),
@@ -68,25 +48,11 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       final provider = Provider.of<AppProvider>(context, listen: false);
       
-      // Subir imagen al backend (ya sea archivo o asset local)
-      String imageUrl;
-      if (_selectedLocalAsset != null) {
-        // Convertir asset a archivo temporal y subir
-        final tempFile = await _assetToFile(_selectedLocalAsset!);
-        final uploadedUrl = await provider.uploadImage(tempFile);
-        if (uploadedUrl == null || uploadedUrl.isEmpty) {
-          throw Exception('Failed to upload local asset');
-        }
-        imageUrl = uploadedUrl;
-        // Limpiar archivo temporal
-        await tempFile.delete();
-      } else {
-        final uploadedUrl = await provider.uploadImage(_selectedImage!);
-        if (uploadedUrl == null || uploadedUrl.isEmpty) {
-          throw Exception('Failed to upload image');
-        }
-        imageUrl = uploadedUrl;
+      final uploadedUrl = await provider.uploadImage(_selectedImage!);
+      if (uploadedUrl == null || uploadedUrl.isEmpty) {
+        throw Exception('Failed to upload image');
       }
+      final imageUrl = uploadedUrl;
 
       final newItem = ClothingItem(
         id: '',
@@ -110,7 +76,6 @@ class _CameraScreenState extends State<CameraScreen> {
         );
         setState(() {
           _selectedImage = null;
-          _selectedLocalAsset = null;
           _selectedCategory = null;
         });
       }
@@ -235,7 +200,7 @@ class _CameraScreenState extends State<CameraScreen> {
                       ],
                     ),
                     const SizedBox(height: 30),
-                    if ((_selectedImage != null || _selectedLocalAsset != null) && _selectedCategory != null)
+                    if (_selectedImage != null && _selectedCategory != null)
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -262,18 +227,6 @@ class _CameraScreenState extends State<CameraScreen> {
                         ),
                       ),
                     const SizedBox(height: 30),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'O usa una imagen local (modo desarrollo):',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLocalAssetsSelector(),
-                    const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -388,32 +341,6 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Widget _buildImagePreview() {
-    // Preview de asset local
-    if (_selectedLocalAsset != null) {
-      return Container(
-        width: 280,
-        height: 280,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Image.asset(
-            _selectedLocalAsset!,
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    }
-    
-    // Preview de archivo seleccionado
     if (_selectedImage != null) {
       return Container(
         width: 280,
@@ -485,72 +412,4 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-  Widget _buildLocalAssetsSelector() {
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _localAssets.length,
-        itemBuilder: (context, index) {
-          final asset = _localAssets[index];
-          final isSelected = _selectedLocalAsset == asset['path'];
-          
-          return GestureDetector(
-            onTap: () => _selectLocalAsset(asset['path']!),
-            child: Container(
-              width: 80,
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: isSelected
-                    ? Border.all(color: const Color(0xFF0E4A88), width: 3)
-                    : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.asset(
-                      asset['path']!,
-                      fit: BoxFit.cover,
-                    ),
-                    if (isSelected)
-                      Container(
-                        color: const Color(0xFF0E4A88).withOpacity(0.5),
-                        child: const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // Helper: Convert asset to temporary file for upload
-  Future<File> _assetToFile(String assetPath) async {
-    final byteData = await rootBundle.load(assetPath);
-    final bytes = byteData.buffer.asUint8List();
-    
-    final tempDir = await getTemporaryDirectory();
-    final fileName = assetPath.split('/').last;
-    final tempFile = File('${tempDir.path}/$fileName');
-    
-    await tempFile.writeAsBytes(bytes);
-    return tempFile;
-  }
 }
