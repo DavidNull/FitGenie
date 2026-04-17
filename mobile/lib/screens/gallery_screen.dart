@@ -60,6 +60,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -73,6 +74,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ),
         ),
         child: SafeArea(
+          bottom: false, // Allow gradient to extend behind bottom nav
           child: Consumer<AppProvider>(
             builder: (context, provider, child) {
               return RefreshIndicator(
