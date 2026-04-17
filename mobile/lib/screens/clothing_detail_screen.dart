@@ -170,10 +170,10 @@ class _ClothingDetailScreenState extends State<ClothingDetailScreen> {
           children: [
             Expanded(
               child: _buildInfoCard(
-                icon: Icons.event,
-                label: 'Ocasión',
-                value: _item.occasion.isNotEmpty ? _item.occasion.join(', ') : 'No especificado',
-                color: const Color(0xFF0E4A88),
+                icon: Icons.color_lens,
+                label: 'Color',
+                value: _item.primaryColor ?? 'No especificado',
+                color: const Color(0xFF1DA9B6),
               ),
             ),
             const SizedBox(width: 12),
@@ -183,6 +183,28 @@ class _ClothingDetailScreenState extends State<ClothingDetailScreen> {
                 label: 'Temporada',
                 value: _item.season.isNotEmpty ? _item.season.join(', ') : 'No especificado',
                 color: const Color(0xFFF78400),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoCard(
+                icon: Icons.style,
+                label: 'Estilo',
+                value: _item.style ?? 'No especificado',
+                color: const Color(0xFF0E4A88),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildInfoCard(
+                icon: Icons.category,
+                label: 'Categoría',
+                value: _item.category,
+                color: const Color(0xFF1DA9B6),
               ),
             ),
           ],
@@ -418,7 +440,6 @@ class _ClothingDetailScreenState extends State<ClothingDetailScreen> {
         imageUrl: _item.imageUrl,
         primaryColor: result['color'],
         style: result['style'],
-        occasion: _item.occasion,
         season: _item.season,
         createdAt: _item.createdAt,
         updatedAt: DateTime.now(),

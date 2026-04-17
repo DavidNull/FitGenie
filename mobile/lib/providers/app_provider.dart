@@ -43,17 +43,15 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Sample images configuration with AI-detected metadata
+  // Sample images - essential data for recommendations
   final List<Map<String, dynamic>> _sampleImages = [
     {
       'path': 'assets/clothing/c1.png',
-      'name': 'Camiseta Básica Blanca',
+      'name': 'Camiseta Blanca',
       'category': 'Parte de arriba',
       'primaryColor': 'Blanco',
       'style': 'Casual',
       'season': ['Verano', 'Primavera'],
-      'occasion': ['Casual', 'Deporte'],
-      'material': 'Algodón',
     },
     {
       'path': 'assets/clothing/c2.png',
@@ -62,8 +60,6 @@ class AppProvider extends ChangeNotifier {
       'primaryColor': 'Negro',
       'style': 'Casual',
       'season': ['Verano', 'Otoño', 'Primavera'],
-      'occasion': ['Casual', 'Noche'],
-      'material': 'Algodón',
     },
     {
       'path': 'assets/clothing/c3.png',
@@ -72,8 +68,6 @@ class AppProvider extends ChangeNotifier {
       'primaryColor': 'Gris',
       'style': 'Sport',
       'season': ['Invierno', 'Otoño'],
-      'occasion': ['Casual', 'Deporte'],
-      'material': 'Poliéster',
     },
     {
       'path': 'assets/clothing/p1.png',
@@ -82,18 +76,14 @@ class AppProvider extends ChangeNotifier {
       'primaryColor': 'Azul',
       'style': 'Casual',
       'season': ['Otoño', 'Invierno', 'Primavera'],
-      'occasion': ['Casual', 'Trabajo'],
-      'material': 'Denim',
     },
     {
       'path': 'assets/clothing/p2.png',
-      'name': 'Pantalón Chino Negro',
+      'name': 'Pantalón Negro',
       'category': 'Parte de abajo',
       'primaryColor': 'Negro',
       'style': 'Formal',
       'season': ['Otoño', 'Invierno', 'Primavera'],
-      'occasion': ['Trabajo', 'Formal', 'Casual'],
-      'material': 'Algodón',
     },
   ];
 
@@ -119,7 +109,7 @@ class AppProvider extends ChangeNotifier {
         await tempFile.delete();
         
         if (imageUrl != null) {
-          // Create clothing item with full metadata
+          // Create clothing item with essential metadata for recommendations
           final item = ClothingItem(
             id: '',
             userId: _userId ?? '',
@@ -128,8 +118,6 @@ class AppProvider extends ChangeNotifier {
             primaryColor: sample['primaryColor'],
             style: sample['style'],
             season: List<String>.from(sample['season'] ?? []),
-            occasion: List<String>.from(sample['occasion'] ?? []),
-            material: sample['material'],
             imageUrl: imageUrl,
           );
           await addClothingItem(item);
