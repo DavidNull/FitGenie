@@ -40,43 +40,19 @@ class AppProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Predefined local assets for development
-  final List<Map<String, dynamic>> _localAssets = [
-    {'id': 'local_c1', 'file': 'assets/clothing/c1.png', 'name': 'Camiseta Básica', 'category': 'Parte de arriba'},
-    {'id': 'local_c2', 'file': 'assets/clothing/c2.png', 'name': 'Camiseta Estampada', 'category': 'Parte de arriba'},
-    {'id': 'local_c3', 'file': 'assets/clothing/c3.png', 'name': 'Sudadera', 'category': 'Parte de arriba'},
-    {'id': 'local_p1', 'file': 'assets/clothing/p1.png', 'name': 'Vaqueros', 'category': 'Parte de abajo'},
-    {'id': 'local_p2', 'file': 'assets/clothing/p2.png', 'name': 'Pantalón Chino', 'category': 'Parte de abajo'},
-  ];
-
-  // Load clothing items - local assets appear immediately, backend loads async
+  // Load clothing items from backend only
   Future<void> loadClothingItems() async {
-    // First, show local assets immediately (no waiting)
-    final localItems = _localAssets.map((asset) => ClothingItem(
-      id: asset['id'] as String,
-      userId: _userId ?? 'local',
-      name: asset['name'] as String,
-      category: asset['category'] as String,
-      imageUrl: asset['file'] as String,
-      isLocalAsset: true,
-      createdAt: DateTime.now(),
-    )).toList();
-    
-    _clothingItems = localItems;
-    notifyListeners(); // UI updates immediately with local items
-    
-    // Then try to load backend items async
+    _setLoading(true);
     try {
-      final backendItems = await _apiService.getClothingItems();
-      // Combine: locals first, then backend items
-      _clothingItems = [...localItems, ...backendItems];
+      _clothingItems = await _apiService.getClothingItems();
       _error = null;
-      notifyListeners(); // UI updates again with combined list
+      notifyListeners();
     } catch (e) {
-      // Backend failed, but we already showed locals
-      _error = 'Backend offline - mostrando prendas locales';
+      _error = 'Error al cargar prendas: $e';
+      _clothingItems = [];
       notifyListeners();
     }
+    _setLoading(false);
   }
 
   // Load outfits

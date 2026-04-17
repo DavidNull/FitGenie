@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/clothing_item.dart';
@@ -65,10 +68,18 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       final provider = Provider.of<AppProvider>(context, listen: false);
       
-      // Si es asset local, usar directamente. Si es archivo, subir primero
+      // Subir imagen al backend (ya sea archivo o asset local)
       String imageUrl;
       if (_selectedLocalAsset != null) {
-        imageUrl = _selectedLocalAsset!;
+        // Convertir asset a archivo temporal y subir
+        final tempFile = await _assetToFile(_selectedLocalAsset!);
+        final uploadedUrl = await provider.uploadImage(tempFile);
+        if (uploadedUrl == null || uploadedUrl.isEmpty) {
+          throw Exception('Failed to upload local asset');
+        }
+        imageUrl = uploadedUrl;
+        // Limpiar archivo temporal
+        await tempFile.delete();
       } else {
         final uploadedUrl = await provider.uploadImage(_selectedImage!);
         if (uploadedUrl == null || uploadedUrl.isEmpty) {
@@ -527,5 +538,18 @@ class _CameraScreenState extends State<CameraScreen> {
         },
       ),
     );
+  }
+
+  // Helper: Convert asset to temporary file for upload
+  Future<File> _assetToFile(String assetPath) async {
+    final byteData = await rootBundle.load(assetPath);
+    final bytes = byteData.buffer.asUint8List();
+    
+    final tempDir = await getTemporaryDirectory();
+    final fileName = assetPath.split('/').last;
+    final tempFile = File('${tempDir.path}/$fileName');
+    
+    await tempFile.writeAsBytes(bytes);
+    return tempFile;
   }
 }
