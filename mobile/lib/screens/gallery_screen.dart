@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/clothing_item.dart';
 import '../widgets/skeleton_loading.dart';
+import '../utils/page_transitions.dart';
 import 'clothing_detail_screen.dart';
 import 'camera_screen.dart';
 
@@ -74,12 +75,19 @@ class _GalleryScreenState extends State<GalleryScreen> {
         child: SafeArea(
           child: Consumer<AppProvider>(
             builder: (context, provider, child) {
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              return RefreshIndicator(
+                onRefresh: () async {
+                  await provider.loadClothingItems();
+                },
+                color: const Color(0xFF0E4A88),
+                backgroundColor: Colors.white,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -136,9 +144,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           subtitle: 'Añade prendas para empezar a crear outfits',
                           actionLabel: 'Añadir prenda',
                           onAction: () {
-                            Navigator.push(
+                            PageTransitions.modalTo(
                               context,
-                              MaterialPageRoute(builder: (context) => const CameraScreen()),
+                              const CameraScreen(),
                             );
                           },
                         )
@@ -170,7 +178,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             );
                           }
                         ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -292,11 +301,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   void _viewClothingDetail(ClothingItem item) {
-    Navigator.push(
+    PageTransitions.slideTo(
       context,
-      MaterialPageRoute(
-        builder: (context) => ClothingDetailScreen(item: item),
-      ),
+      ClothingDetailScreen(item: item),
     );
   }
 

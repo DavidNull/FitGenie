@@ -1,5 +1,5 @@
 # FitGenie
-![Logo](./mobile/assets/LOGO.png)
+![Logo](./docs/img/Banner.png)
 
 App para recomendar outfits de ropa con IA. Sube tus prendas, recibe combinaciones inteligentes basadas en color, estilo y ocasión.
 
@@ -7,10 +7,10 @@ App para recomendar outfits de ropa con IA. Sube tus prendas, recibe combinacion
 
 ```
 ┌─────────────────┐     WiFi/Red local     ┌─────────────────┐
-│  Flutter App    │  ═══════════════════► │  Backend Go     │
-│  (Móvil/PC)     │                         │  + PostgreSQL   │
-│                 │  ◄═════════════════════  │  + S3 (Local)   │
-└─────────────────┘     HTTP API :8080      └─────────────────┘
+│  Flutter App    │  ═══════════════════►  │  Backend Go     │
+│  (Móvil/PC)     │                        │  + PostgreSQL   │
+│                 │  ◄═════════════════════│  + S3 (Local)   │
+└─────────────────┘     HTTP API :8080     └─────────────────┘
 ```
 
 **Flujo:**

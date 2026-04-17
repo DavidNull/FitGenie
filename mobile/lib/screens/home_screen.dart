@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../utils/page_transitions.dart';
 import 'saved_outfits_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -130,11 +131,9 @@ class HomeScreen extends StatelessWidget {
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.push(
+                            PageTransitions.slideTo(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => const SavedOutfitsScreen(),
-                              ),
+                              const SavedOutfitsScreen(),
                             );
                           },
                           child: _buildStatCard(
