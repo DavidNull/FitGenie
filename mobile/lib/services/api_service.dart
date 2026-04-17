@@ -23,7 +23,9 @@ class ApiService {
     final response = await http.get(
       Uri.parse('${ApiService.baseUrl}/users/me'),
       headers: headers,
-    );
+    ).timeout(const Duration(seconds: 5), onTimeout: () {
+      throw Exception('Connection timeout - backend not reachable');
+    });
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -43,7 +45,9 @@ class ApiService {
     final response = await http.get(
       Uri.parse('${ApiService.baseUrl}/clothing?user_id=$userId'),
       headers: headers,
-    );
+    ).timeout(const Duration(seconds: 5), onTimeout: () {
+      throw Exception('Connection timeout - backend not reachable');
+    });
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -58,7 +62,7 @@ class ApiService {
       Uri.parse('${ApiService.baseUrl}/clothing'),
       headers: headers,
       body: jsonEncode(item.toJson()),
-    );
+    ).timeout(const Duration(seconds: 5));
     
     if (response.statusCode == 201) {
       return ClothingItem.fromJson(jsonDecode(response.body));
@@ -70,7 +74,7 @@ class ApiService {
     final response = await http.delete(
       Uri.parse('${ApiService.baseUrl}/clothing/$id'),
       headers: headers,
-    );
+    ).timeout(const Duration(seconds: 5));
     
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete clothing item: ${response.statusCode}');
@@ -82,7 +86,7 @@ class ApiService {
       Uri.parse('${ApiService.baseUrl}/clothing/${item.id}'),
       headers: headers,
       body: jsonEncode(item.toJson()),
-    );
+    ).timeout(const Duration(seconds: 5));
     
     if (response.statusCode == 200) {
       return ClothingItem.fromJson(jsonDecode(response.body));
@@ -94,7 +98,7 @@ class ApiService {
     final response = await http.get(
       Uri.parse('${ApiService.baseUrl}/users/$userId/outfits'),
       headers: headers,
-    );
+    ).timeout(const Duration(seconds: 5));
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -121,7 +125,7 @@ class ApiService {
         'season': outfit.season,
         'weather': outfit.weather,
       }),
-    );
+    ).timeout(const Duration(seconds: 5));
     
     if (response.statusCode == 201) {
       return Outfit.fromJson(jsonDecode(response.body));
@@ -145,7 +149,7 @@ class ApiService {
         'favorite': outfit.favorite,
         'notes': outfit.notes,
       }),
-    );
+    ).timeout(const Duration(seconds: 5));
     
     if (response.statusCode == 200) {
       return Outfit.fromJson(jsonDecode(response.body));
@@ -163,7 +167,7 @@ class ApiService {
       Uri.parse('${ApiService.baseUrl}/users/$userId/outfits/recommendations'),
       headers: headers,
       body: jsonEncode(request?.toJson() ?? {}),
-    );
+    ).timeout(const Duration(seconds: 10));
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -198,7 +202,7 @@ class ApiService {
       contentType: contentType,
     ));
 
-    final response = await request.send();
+    final response = await request.send().timeout(const Duration(seconds: 30));
     
     if (response.statusCode == 200) {
       final responseData = await response.stream.bytesToString();
