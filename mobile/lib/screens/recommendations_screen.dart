@@ -255,40 +255,28 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  rec.reasoning,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    fontStyle: FontStyle.italic,
+                SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: outfit.clothingItems.length,
+                    itemBuilder: (context, index) {
+                      final item = outfit.clothingItems[index];
+                      return Container(
+                        width: 100,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFFF0F7F8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: _buildItemImage(item),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Prendas:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0E4A88),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...outfit.clothingItems.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.checkroom,
-                        size: 16,
-                        color: Color(0xFF1DA9B6),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${item.name} (${item.category})',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                )),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
@@ -312,6 +300,33 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildItemImage(item) {
+    if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
+      if (item.imageUrl!.startsWith('assets/')) {
+        return Image.asset(
+          item.imageUrl!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (context, error, stackTrace) {
+            return const Center(child: Icon(Icons.checkroom, size: 40, color: Color(0xFF1DA9B6)));
+          },
+        );
+      } else {
+        return Image.network(
+          item.imageUrl!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (context, error, stackTrace) {
+            return const Center(child: Icon(Icons.checkroom, size: 40, color: Color(0xFF1DA9B6)));
+          },
+        );
+      }
+    }
+    return const Center(child: Icon(Icons.checkroom, size: 40, color: Color(0xFF1DA9B6)));
   }
 
   Future<void> _saveOutfit(OutfitRecommendation rec) async {

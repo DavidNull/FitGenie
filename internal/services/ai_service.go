@@ -396,41 +396,26 @@ func (ai *AIService) scoreOccasionAppropriateness(items []models.ClothingItem, o
 }
 
 func (ai *AIService) generateOutfitReasoning(colorScore, styleScore, seasonScore, occasionScore float64) string {
-	reasons := []string{}
+	parts := []string{}
 
-	if colorScore > 0.8 {
-		reasons = append(reasons, "excellent color harmony")
-	} else if colorScore > 0.6 {
-		reasons = append(reasons, "good color coordination")
-	} else {
-		reasons = append(reasons, "acceptable color combination")
+	if colorScore > 0.7 {
+		parts = append(parts, "colores combinan bien")
+	}
+	if styleScore > 0.7 {
+		parts = append(parts, "estilo coordinado")
+	}
+	if seasonScore > 0.7 {
+		parts = append(parts, "apropiado para la temporada")
+	}
+	if occasionScore > 0.7 {
+		parts = append(parts, "ideal para la ocasión")
 	}
 
-	if styleScore > 0.8 {
-		reasons = append(reasons, "highly coherent style")
-	} else if styleScore > 0.6 {
-		reasons = append(reasons, "well-matched pieces")
-	} else {
-		reasons = append(reasons, "mixed style elements")
+	if len(parts) == 0 {
+		return "Combinación básica de prendas"
 	}
 
-	if seasonScore > 0.8 {
-		reasons = append(reasons, "perfect for the season")
-	} else if seasonScore > 0.6 {
-		reasons = append(reasons, "season-appropriate")
-	}
-
-	if occasionScore > 0.8 {
-		reasons = append(reasons, "ideal for the occasion")
-	} else if occasionScore > 0.6 {
-		reasons = append(reasons, "suitable for the event")
-	}
-
-	if len(reasons) == 0 {
-		return "A basic outfit combination"
-	}
-
-	return fmt.Sprintf("This outfit features %s", joinReasons(reasons))
+	return strings.Join(parts, ", ")
 }
 
 func joinReasons(reasons []string) string {
@@ -438,20 +423,10 @@ func joinReasons(reasons []string) string {
 		return reasons[0]
 	}
 	if len(reasons) == 2 {
-		return reasons[0] + " and " + reasons[1]
+		return reasons[0] + " y " + reasons[1]
 	}
 
-	result := ""
-	for i, reason := range reasons {
-		if i == len(reasons)-1 {
-			result += "and " + reason
-		} else if i == 0 {
-			result += reason
-		} else {
-			result += ", " + reason
-		}
-	}
-	return result
+	return strings.Join(reasons[:len(reasons)-1], ", ") + " y " + reasons[len(reasons)-1]
 }
 
 func (ai *AIService) calculateOverallOutfitScore(outfit *models.Outfit) float64 {
