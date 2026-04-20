@@ -38,6 +38,7 @@ func NewRouter(db *database.Connection, log *logger.Logger, cfg *config.Config) 
 		var err error
 		s3Client, err = storage.NewS3Client(storage.S3Config{
 			Endpoint:        cfg.S3Endpoint,
+			PublicEndpoint:  cfg.S3PublicEndpoint,
 			Region:          cfg.S3Region,
 			Bucket:          cfg.S3Bucket,
 			AccessKeyID:     cfg.S3AccessKeyID,

@@ -17,6 +17,7 @@ type Config struct {
 	AllowedImageTypes    []string
 	// S3 Configuration
 	S3Endpoint        string
+	S3PublicEndpoint  string
 	S3Region          string
 	S3Bucket          string
 	S3AccessKeyID     string
@@ -36,6 +37,7 @@ func Load() *Config {
 		AllowedImageTypes:    []string{"jpg", "jpeg", "png", "webp"},
 		// S3 Configuration
 		S3Endpoint:        getEnv("S3_ENDPOINT", ""),
+		S3PublicEndpoint:  getEnv("S3_PUBLIC_ENDPOINT", ""),
 		S3Region:          getEnv("S3_REGION", "us-east-1"),
 		S3Bucket:          getEnv("S3_BUCKET", "fitgenie-images"),
 		S3AccessKeyID:     getEnv("AWS_ACCESS_KEY_ID", ""),
