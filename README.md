@@ -1,207 +1,347 @@
-# FitGenie
+# FitGenie - Complete Development Guide
 
-Aplicación para gestionar tu armario y recibir recomendaciones de outfits con IA.
+This README contains all steps for development, production migration, and deployment options.
 
-![FitGenie Banner](./docs/img/Banner.png)
+## Table of Contents
 
-## Descripción
+1. [Current State](#current-state)
+2. [Development Setup (WSL)](#development-setup-wsl)
+3. [Production Migration](#production-migration)
+4. [Deployment Options](#deployment-options)
+5. [Next Steps](#next-steps)
 
-FitGenie te permite:
-- **Gestionar tu armario**: Añadir, editar y eliminar prendas de ropa
-- **Ver detalles**: Color, estilo, temporada de cada prenda
-- **Recibir recomendaciones**: La IA sugiere outfits basados en ocasión y temporada
-- **Guardar favoritos**: Almacenar outfits que te gusten
+---
 
-## Arquitectura de Desarrollo Local
+## Current State
 
-```
-┌─────────────┐     WiFi/Red     ┌─────────────┐
-│ Flutter App │ ◄══════════════► │ Backend Go  │
-│  (Móvil)    │                  │ + Postgres  │
-└─────────────┘                  │ + S3 Local  │
-                                 └─────────────┘
-                                       PC (WSL)
-```
+**Working Features:**
+- ✅ Flutter app with gallery, camera, recommendations
+- ✅ Go backend with PostgreSQL + S3 (LocalStack)
+- ✅ Sample images load as local assets
+- ✅ Docker image built (`davidnull/fitgenie:1.0`)
+- ✅ Mobile-only branch created
 
-**Nota importante**: Esta configuración es para **desarrollo local**. Todo corre en tu PC y la app móvil se conecta vía IP.
+**Known Limitations:**
+- Requires manual IP configuration for WSL
+- LocalStack S3 needs public endpoint for Flutter access
+- No CI/CD pipeline
+- No production cloud deployment
 
-## Requisitos
+---
 
-- Docker y Docker Compose
-- Flutter SDK
-- Dispositivo móvil o emulador en la misma red WiFi
+## Development Setup (WSL)
 
-## Inicio Rápido
+### 1. Backend IP Configuration
 
-### 1. Iniciar Backend
+**Problem:** WSL changes IP on restart
 
-```bash
-cd /home/david/FitGenie
-make docker-run
-```
+**Solution:** Hardcode IP in `mobile/lib/services/api_service.dart`:
 
-Verifica que todo esté corriendo:
-```bash
-docker ps
-```
-
-Deberías ver:
-- `fitgenie-api` (puerto 8080)
-- `fitgenie-postgres` (puerto 5432)
-- `fitgenie-localstack` (puerto 4566)
-
-### 2. Configurar IP del Backend
-
-Obtén tu IP de WSL:
-```bash
-ip route | grep default | awk '{print $3}'
-```
-
-Edita `mobile/lib/services/api_service.dart`:
 ```dart
-static String apiHost = '172.21.48.1';  // Tu IP de WSL
+class ApiService {
+  // Get your WSL IP:
+  // $ ip route | grep default | awk '{print $3}'
+  // Example: 172.21.48.1
+  
+  static String apiHost = '172.21.48.1';  // <-- Update this
+  static String get baseUrl => 'http://$apiHost:8080/api/v1';
+}
 ```
 
-**Para diferentes entornos:**
-- **Emulador Android**: `10.0.2.2`
-- **iOS Simulator**: `localhost`
-- **Dispositivo físico**: IP de tu PC en la red WiFi
-- **WSL/Linux**: IP que te da el comando anterior
+**Environments:**
+- **Android Emulator:** `10.0.2.2` (host localhost)
+- **iOS Simulator:** `localhost`
+- **Physical Device:** Your PC's WiFi IP
+- **Linux Desktop:** WSL IP (`172.21.48.1`)
 
-### 3. Ejecutar Flutter
+### 2. Start Backend
+
+```bash
+# Option A: Docker Compose (with source code)
+cd /home/david/FitGenie
+docker compose up -d
+
+# Option B: Docker Hub image only
+docker pull davidnull/fitgenie:1.0
+# Needs external postgres + localstack
+```
+
+### 3. Start Flutter
 
 ```bash
 cd /home/david/FitGenie/mobile
 flutter pub get
-flutter run
+flutter run -d linux  # or chrome, android, ios
 ```
 
-## Uso de la App
+---
 
-### Primera vez
+## Production Migration
 
-1. Ve a **Galería** (estará vacía)
-2. Toca **"Usar imágenes de ejemplo"**
-3. Se importarán 5 prendas de ejemplo con datos para recomendaciones
-4. Ve a **Recomendaciones** para generar outfits con IA
+### Phase 1: Firebase (Easiest)
 
-### Añadir prendas propias
+**Goal:** Replace local backend with Firebase services
 
-1. Ve a **Cámara** (icono + en el menú inferior)
-2. Selecciona **Cámara** o **Galería** del dispositivo
-3. Elige la categoría (Parte de arriba/Parte de abajo/Calzado)
-4. La imagen se sube automáticamente y aparece en tu armario
+**Why Firebase:**
+- No server maintenance
+- Built-in auth, database, storage
+- Global CDN for images
+- Works offline
 
-### Generar Outfits
+**Migration Steps:**
 
-1. Ve a **Recomendaciones**
-2. Selecciona **Ocasión** (Casual, Formal, Trabajo...)
-3. Selecciona **Temporada** (Verano, Invierno...)
-4. Toca **"Generar Outfits"**
-5. La IA sugerirá combinaciones basadas en tu armario
-6. Guarda los que te gusten en favoritos
-
-## Stack Tecnológico
-
-### Backend
-- **Go 1.23** + Gin framework
-- **PostgreSQL** para datos
-- **LocalStack S3** para imágenes (modo desarrollo)
-- **Docker Compose** para orquestación
-
-### Frontend
-- **Flutter 3.x** con Material 3
-- **Provider** para gestión de estado
-- **Image Picker** para acceso a cámara/galería
-- **HTTP** para comunicación con API
-
-## Mejoras Futuras (Firebase)
-
-Para pasar de desarrollo local a producción, se recomienda:
-
-### Firebase Integration
-```
-┌─────────────┐              ┌─────────────┐
-│ Flutter App │ ◄──────────► │   Firebase  │
-│             │              │  - Auth     │
-│             │              │  - Firestore│
-│             │              │  - Storage  │
-└─────────────┘              └─────────────┘
+1. **Add Firebase to Flutter:**
+```bash
+flutter pub add firebase_core firebase_auth cloud_firestore firebase_storage
 ```
 
-**Ventajas:**
-- **Auth**: Login con Google/Apple/email
-- **Firestore**: Base de datos en la nube (sin servidor propio)
-- **Storage**: Almacenamiento de imágenes (sin S3)
-- **Hosting**: App web si se necesita
-- **Functions**: Backend serverless si se necesita lógica extra
+2. **Replace API calls with Firestore:**
+```dart
+// Before (REST API)
+final items = await apiService.getClothingItems();
 
-**Implementación:**
-1. Crear proyecto en Firebase Console
-2. Añadir `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`
-3. Migrar modelos de PostgreSQL a Firestore
-4. Reemplazar S3 por Firebase Storage
-5. Deploy backend a Cloud Run o usar Firebase Functions
-
-## Estructura del Proyecto
-
-```
-FitGenie/
-├── cmd/api/              # Entry point backend
-├── internal/
-│   ├── api/              # HTTP handlers y rutas
-│   ├── models/           # Modelos de datos
-│   ├── repository/       # Acceso a BD
-│   └── services/         # Lógica de negocio
-├── pkg/
-│   ├── logger/           # Logging
-│   └── storage/          # Cliente S3
-├── mobile/
-│   ├── lib/
-│   │   ├── screens/      # Pantallas Flutter
-│   │   ├── providers/    # Estado con Provider
-│   │   ├── services/     # API client
-│   │   └── models/       # Modelos Dart
-│   └── assets/           # Imágenes y recursos
-├── docker-compose.yml    # Configuración Docker
-└── README.md
+// After (Firestore)
+final snapshot = await FirebaseFirestore.instance
+  .collection('users')
+  .doc(userId)
+  .collection('clothing')
+  .get();
 ```
 
-## Comandos Útiles
+3. **Replace S3 with Firebase Storage:**
+```dart
+// Before (S3 upload)
+final url = await apiService.uploadImage(file);
+
+// After (Firebase Storage)
+final ref = FirebaseStorage.instance.ref('clothing/$fileName');
+await ref.putFile(file);
+final url = await ref.getDownloadURL();
+```
+
+4. **Add Firebase Auth:**
+```dart
+// Anonymous auth for quick start
+final user = await FirebaseAuth.instance.signInAnonymously();
+```
+
+**Firebase Architecture:**
+```
+┌─────────────┐      Firebase      ┌─────────────┐
+│  Flutter    │  ═══════════════►  │  Firestore  │
+│   (app)     │  ═══════════════►  │   Storage   │
+└─────────────┘                    │    Auth     │
+                                   └─────────────┘
+```
+
+**Pros:**
+- No backend code to maintain
+- Scales automatically
+- Works from anywhere (no local network needed)
+
+**Cons:**
+- Vendor lock-in
+- Costs money at scale
+- Limited backend logic
+
+---
+
+### Phase 2: Kubernetes (k3s)
+
+**Goal:** Self-hosted production on k3s cluster
+
+**Why k3s:**
+- Lightweight Kubernetes
+- Runs on Raspberry Pi or cheap VPS
+- Full control over infrastructure
+
+**Architecture:**
+```
+┌─────────────┐                    ┌─────────────────┐
+│   Flutter   │  ════════════════► │   k3s Cluster   │
+│    (app)    │                    │ ┌─────────────┐ │
+└─────────────┘                    │ │  Ingress    │ │
+                                   │ │    (TLS)    │ │
+                                   │ └──────┬──────┘ │
+                                   │        │        │
+                                   │ ┌──────┴──────┐ │
+                                   │ │  FitGenie   │ │
+                                   │ │   (Go API)  │ │
+                                   │ └──────┬──────┘ │
+                                   │        │        │
+                                   │ ┌──────┴──────┐ │
+                                   │ │  Postgres   │ │
+                                   │ │   (PVC)     │ │
+                                   │ └─────────────┘ │
+                                   └─────────────────┘
+```
+
+**Files to Create:**
+
+1. `k8s/namespace.yaml`
+2. `k8s/postgres-deployment.yaml`
+3. `k8s/postgres-service.yaml`
+4. `k8s/postgres-pvc.yaml`
+5. `k8s/fitgenie-deployment.yaml`
+6. `k8s/fitgenie-service.yaml`
+7. `k8s/ingress.yaml`
+
+**Example k3s Deployment:**
+
+```yaml
+# k8s/fitgenie-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fitgenie-api
+  namespace: fitgenie
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fitgenie-api
+  template:
+    metadata:
+      labels:
+        app: fitgenie-api
+    spec:
+      containers:
+      - name: api
+        image: davidnull/fitgenie:1.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DATABASE_URL
+          value: "postgres://fitgenie:password@postgres:5432/fitgenie"
+        - name: S3_ENDPOINT
+          value: "https://s3.amazonaws.com"  # Real S3
+        - name: S3_BUCKET
+          value: "fitgenie-production"
+```
+
+**Deploy:**
+```bash
+# On k3s master node
+git clone https://github.com/DavidNull/FitGenie.git
+cd FitGenie/k8s
+kubectl apply -f namespace.yaml
+kubectl apply -f postgres-pvc.yaml
+kubectl apply -f postgres-deployment.yaml
+kubectl apply -f postgres-service.yaml
+kubectl apply -f fitgenie-deployment.yaml
+kubectl apply -f fitgenie-service.yaml
+kubectl apply -f ingress.yaml
+```
+
+**Pros:**
+- Full control
+- Can run on cheap hardware
+- Portable between cloud providers
+
+**Cons:**
+- More complex to manage
+- Need to handle TLS, backups, monitoring
+
+---
+
+## Deployment Options Summary
+
+| Option | Complexity | Cost | Best For |
+|--------|-----------|------|----------|
+| **Local (WSL)** | Low | Free | Development |
+| **Firebase** | Low-Medium | Pay-as-you-go | MVP, quick launch |
+| **k3s (VPS)** | Medium | $5-20/month | Production, learning |
+| **AWS/GCP** | High | $50+/month | Enterprise |
+
+---
+
+## Next Steps
+
+### Immediate (Before LinkedIn Post)
+
+1. ✅ **Fix sample images** - Done
+2. ✅ **Push Docker image** - Built (need to login to push)
+3. ✅ **Create mobile branch** - Done
+4. ⏳ **Test end-to-end flow** - Import samples → Gallery → Recommendations
+
+### Short Term (Next 2 Weeks)
+
+1. **Add GitHub Actions CI/CD**
+```yaml
+# .github/workflows/build.yml
+name: Build and Push
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker
+        run: docker build -t davidnull/fitgenie:${{ github.sha }} .
+      - name: Push to Docker Hub
+        run: docker push davidnull/fitgenie:${{ github.sha }}
+```
+
+2. **Add Flutter tests**
+```bash
+cd mobile
+flutter test
+```
+
+3. **Write blog post** about the architecture
+
+### Long Term (Next 3 Months)
+
+1. **Migrate to Firebase** for production
+2. **Add user authentication** (Google, Apple)
+3. **Implement AI recommendations** with OpenAI API
+4. **Deploy to k3s** for portfolio demo
+5. **Add monitoring** (Prometheus, Grafana)
+
+---
+
+## Useful Commands
 
 ```bash
-# Backend
-make docker-run           # Iniciar todo
-make docker-stop          # Detener todo
-docker logs fitgenie-api  # Ver logs del API
+# Docker
+make docker-run        # Start all services
+docker logs fitgenie-api -f  # Watch API logs
 
-# Frontend
-cd mobile
-flutter pub get           # Instalar dependencias
-flutter run               # Ejecutar app
-flutter build apk         # Build Android
-flutter build ios         # Build iOS
+# Flutter
+flutter run -d linux   # Desktop mode
+flutter build apk      # Android release
+flutter build ios      # iOS release
 
-# BD
-make migrate-up           # Aplicar migraciones
-make migrate-down         # Revertir migraciones
+# k3s
+kubectl get pods -n fitgenie
+kubectl logs deployment/fitgenie-api -n fitgenie
 ```
 
-## Solución de Problemas
+---
 
-### "Connection refused" o timeout
-- Verifica que la IP en `api_service.dart` sea correcta
-- Comprueba que los contenedores estén corriendo: `docker ps`
-- Reinicia: `docker-compose restart api`
+## Resources
 
-### Error al subir imágenes
-- Verifica que LocalStack esté corriendo: `docker ps | grep localstack`
-- Reinicia todos los servicios: `make docker-stop && make docker-run`
+- [Flutter Documentation](https://docs.flutter.dev)
+- [Firebase Flutter Setup](https://firebase.google.com/docs/flutter/setup)
+- [k3s Quick Start](https://docs.k3s.io/quick-start)
+- [Kubernetes Basics](https://kubernetes.io/docs/tutorials/kubernetes-basics/)
 
-### La app no carga prendas
-- Comprueba conexión: `curl http://TU_IP:8080/api/v1/users/me -H "X-Device-ID: test"`
-- Verifica logs del backend: `docker logs fitgenie-api`
+---
 
-## Licencia
+## Docker Hub Image
 
-MIT License - Ver LICENSE para detalles.
+```bash
+# Pull and run (once published)
+docker pull davidnull/fitgenie:1.0
+docker run -p 8080:8080 davidnull/fitgenie:1.0
+```
+
+**Branches:**
+- `main` - Full project with backend
+- `mobile-only` - Just Flutter app
+
+---
+
+## License
+
+MIT License - See LICENSE file
