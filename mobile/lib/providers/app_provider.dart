@@ -1,8 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path_provider/path_provider.dart';
 import '../models/clothing_item.dart';
 import '../models/outfit.dart';
 import '../models/outfit_recommendation.dart';
@@ -88,29 +85,18 @@ class AppProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       for (final sample in _sampleImages) {
-        final byteData = await rootBundle.load(sample['path']!);
-        final bytes = byteData.buffer.asUint8List();
-        final tempDir = await getTemporaryDirectory();
-        final fileName = sample['path']!.split('/').last;
-        final tempFile = File('${tempDir.path}/$fileName');
-        await tempFile.writeAsBytes(bytes);
-        final imageUrl = await uploadImage(tempFile);
-        await tempFile.delete();
-        if (imageUrl != null) {
-          final item = ClothingItem(
-            id: '',
-            userId: _userId ?? '',
-            name: sample['name']!,
-            category: sample['category']!,
-            primaryColor: sample['primaryColor'],
-            style: sample['style'],
-            season: List<String>.from(sample['season'] ?? []),
-            imageUrl: imageUrl,
-          );
-          await addClothingItem(item);
-        }
+        final item = ClothingItem(
+          id: '',
+          userId: _userId ?? '',
+          name: sample['name']!,
+          category: sample['category']!,
+          primaryColor: sample['primaryColor'],
+          style: sample['style'],
+          season: List<String>.from(sample['season'] ?? []),
+          imageUrl: sample['path'],
+        );
+        await addClothingItem(item);
       }
-      
       await loadClothingItems();
       _error = null;
     } catch (e) {
