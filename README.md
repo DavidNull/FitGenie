@@ -14,45 +14,54 @@ This README contains all steps for development, production migration, and deploy
 
 ## Current State
 
-**Working Features:**
-- ✅ Flutter app with gallery, camera, recommendations
-- ✅ Go backend with PostgreSQL + S3 (LocalStack)
-- ✅ Sample images load as local assets
-- ✅ Docker image built (`davidnull/fitgenie:1.0`)
-- ✅ Mobile-only branch created
+**Professional Features Implemented:**
+- ✅ **Flutter app** with gallery, camera, AI recommendations
+- ✅ **Go backend** with clean architecture (handlers, services, repositories)
+- ✅ **PostgreSQL** with **golang-migrate** SQL migrations
+- ✅ **S3-compatible storage** (LocalStack) with presigned URLs
+- ✅ **Auto-detect backend IP** - no more hardcoding WSL IP
+- ✅ **Swagger/OpenAPI docs** at `/swagger/index.html`
+- ✅ **CI/CD pipeline** with GitHub Actions (go fmt, flutter analyze, Docker build)
+- ✅ **JWT Authentication** with access/refresh tokens
+- ✅ **Docker Hub image** `davidnull/fitgenie:1.0`
+- ✅ **Mobile-only branch** for quick testing
 
-**Known Limitations:**
-- Requires manual IP configuration for WSL
-- LocalStack S3 needs public endpoint for Flutter access
-- No CI/CD pipeline
-- No production cloud deployment
+**Architecture Highlights:**
+```
+┌─────────────┐     HTTP/JSON     ┌──────────────────────────────┐
+│  Flutter    │ ═══════════════► │ Go Backend (Gin + GORM)      │
+│   Mobile    │ ◄═══════════════ │ ├─ REST API with Swagger     │
+└─────────────┘                 │ ├─ JWT Authentication        │
+                                │ ├─ PostgreSQL + Migrations   │
+                                │ ├─ S3 Image Storage          │
+                                │ └─ AI Outfit Recommendations │
+                                └──────────────────────────────┘
+```
 
 ---
 
 ## Development Setup (WSL)
 
-### 1. Backend IP Configuration
+### 1. Backend IP Configuration (Auto-Detect)
 
-**Problem:** WSL changes IP on restart
+✅ **FIXED:** Flutter app now **auto-detects** the backend IP!
 
-**Solution:** Hardcode IP in `mobile/lib/services/api_service.dart`:
+The app probes common addresses on startup:
+- `localhost`
+- `10.0.2.2` (Android Emulator)
+- `172.17.0.1` (Docker bridge)
+- `172.21.48.1` (WSL common)
 
+**No manual configuration needed!**
+
+If you need to override, edit `mobile/lib/services/api_service.dart`:
 ```dart
-class ApiService {
-  // Get your WSL IP:
-  // $ ip route | grep default | awk '{print $3}'
-  // Example: 172.21.48.1
-  
-  static String apiHost = '172.21.48.1';  // <-- Update this
-  static String get baseUrl => 'http://$apiHost:8080/api/v1';
-}
-```
+// Auto-detection (default)
+static String get apiHost => _detectedHost ?? 'localhost';
 
-**Environments:**
-- **Android Emulator:** `10.0.2.2` (host localhost)
-- **iOS Simulator:** `localhost`
-- **Physical Device:** Your PC's WiFi IP
-- **Linux Desktop:** WSL IP (`172.21.48.1`)
+// Manual override (if needed)
+static String apiHost = '172.21.48.1';
+```
 
 ### 2. Start Backend
 
@@ -72,6 +81,93 @@ docker pull davidnull/fitgenie:1.0
 cd /home/david/FitGenie/mobile
 flutter pub get
 flutter run -d linux  # or chrome, android, ios
+```
+
+---
+
+## Professional Features
+
+### Database Migrations (golang-migrate)
+
+**Industry standard** for database schema management:
+
+```
+migrations/
+├── 000001_init_schema.up.sql      # Create tables
+├── 000001_init_schema.down.sql    # Rollback
+├── 000002_add_openai_config.up.sql
+└── 000002_add_openai_config.down.sql
+```
+
+**Run migrations:**
+```bash
+# Auto-runs on backend startup
+go run cmd/server/main.go
+
+# Manual migration (using CLI tool)
+docker run -v $(pwd)/migrations:/migrations \
+  migrate/migrate -path=/migrations -database=postgres://... up
+```
+
+### API Documentation (Swagger/OpenAPI)
+
+Interactive API docs available at: `http://localhost:8080/swagger/index.html`
+
+**Features:**
+- Browse all API endpoints
+- Test endpoints directly from browser
+- See request/response schemas
+- Authentication with JWT
+
+### CI/CD Pipeline (GitHub Actions)
+
+**Checks on every commit:**
+- ✅ `go fmt` - Go code formatting
+- ✅ `go vet` - Static analysis
+- ✅ `go test` - Unit tests
+- ✅ `flutter analyze` - Dart linting
+- ✅ `flutter build apk` - Android build
+- ✅ Docker build test
+- ✅ Security scan (Trivy)
+
+**Auto-deploy to Docker Hub on main branch:**
+```yaml
+# .github/workflows/ci.yml
+tags:
+  - davidnull/fitgenie:latest
+  - davidnull/fitgenie:${{ github.sha }}
+```
+
+### JWT Authentication
+
+**Secure token-based auth** with access and refresh tokens:
+
+```go
+// pkg/auth/jwt.go
+type TokenPair struct {
+    AccessToken  string  // 24h expiry
+    RefreshToken string  // 7d expiry
+    ExpiresIn    int64
+}
+```
+
+**Protected routes:**
+```go
+authMiddleware := middleware.NewAuthMiddleware(jwtService, log)
+
+// Require valid JWT
+cleanRouter := v1.Group("/outfits")
+cleanRouter.Use(authMiddleware.RequireAuth())
+cleanRouter.GET("", outfitHandler.ListOutfits)
+```
+
+**Flutter integration:**
+```dart
+// Store tokens
+await storage.write(key: 'access_token', value: tokenPair.accessToken);
+
+// Add to requests
+headers['Authorization'] = 'Bearer $accessToken';
 ```
 
 ---
