@@ -5,8 +5,11 @@ import 'screens/gallery_screen.dart';
 import 'screens/camera_screen.dart';
 import 'screens/recommendations_screen.dart';
 import 'providers/app_provider.dart';
+import 'services/api_service.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  ApiService.detectBackend();
   runApp(
     ChangeNotifierProvider(
       create: (context) {

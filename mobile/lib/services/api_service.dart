@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import '../models/clothing_item.dart';
@@ -7,8 +8,59 @@ import '../models/outfit.dart';
 import '../models/outfit_recommendation.dart';
 
 class ApiService {
-  static String apiHost = '172.21.48.1';
+  static String? _detectedHost;
+  static bool _isDetecting = false;
+
+  static String get apiHost {
+    if (_detectedHost != null) return _detectedHost!;
+    if (!_isDetecting) detectBackend();
+    return _detectedHost ?? 'localhost';
+  }
+
   static String get baseUrl => 'http://$apiHost:8080/api/v1';
+
+  static Future<void> detectBackend() async {
+    if (_isDetecting || _detectedHost != null) return;
+    _isDetecting = true;
+
+    final candidates = <String>[
+      'localhost',
+    ];
+
+    // Android emulator
+    if (!kIsWeb && Platform.isAndroid) {
+      candidates.insert(0, '10.0.2.2');
+    }
+
+    // Linux/WSL: try common Docker bridge IPs
+    if (!kIsWeb && Platform.isLinux) {
+      candidates.addAll([
+        '172.17.0.1',  // default docker0 bridge
+        '172.21.48.1', // common WSL
+        'host.docker.internal',
+      ]);
+    }
+
+    for (final host in candidates) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://$host:8080/api/v1/users/me'),
+          headers: {'X-Device-ID': 'auto-detect'},
+        ).timeout(const Duration(seconds: 2));
+        if (response.statusCode == 200) {
+          _detectedHost = host;
+          debugPrint('Backend detected at: $host');
+          _isDetecting = false;
+          return;
+        }
+      } catch (_) {
+        debugPrint('Backend not at: $host');
+      }
+    }
+
+    _detectedHost = candidates.first;
+    _isDetecting = false;
+  }
   
   String deviceId = 'flutter-test-device';
   String? userId;
