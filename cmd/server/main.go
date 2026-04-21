@@ -1,3 +1,16 @@
+// @title FitGenie API
+// @version 1.0
+// @description AI-powered outfit recommendation API with Flutter mobile app
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.url http://www.fitgenie.local/support
+// @contact.email support@fitgenie.local
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+// @host localhost:8080
+// @BasePath /api/v1
+// @schemes http https
+
 package main
 
 import (
@@ -15,6 +28,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	_ "fitgenie/docs"
 )
 
 func main() {
@@ -43,8 +58,8 @@ func main() {
 	mux.Handle("/metrics", promhttp.Handler())
 
 	srv := &http.Server{
-		Addr:         ":" + cfg.Port,
-		Handler:      mux,
+		Addr:           ":" + cfg.Port,
+		Handler:        mux,
 		ReadTimeout:    30 * time.Second,
 		WriteTimeout:   30 * time.Second,
 		IdleTimeout:    60 * time.Second,

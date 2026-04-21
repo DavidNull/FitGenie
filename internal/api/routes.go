@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fitgenie/docs"
 	"fitgenie/internal/api/handlers"
 	"fitgenie/internal/config"
 	"fitgenie/internal/repository"
@@ -11,6 +12,8 @@ import (
 	"fitgenie/pkg/storage"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func NewRouter(db *database.Connection, log *logger.Logger, cfg *config.Config) *gin.Engine {
@@ -117,6 +120,15 @@ func NewRouter(db *database.Connection, log *logger.Logger, cfg *config.Config) 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "healthy"})
 	})
+
+	// Swagger documentation
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	docs.SwaggerInfo.Title = "FitGenie API"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Description = "AI-powered outfit recommendation API"
+	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	return router
 }
