@@ -28,14 +28,14 @@ This README contains all steps for development, production migration, and deploy
 
 **Architecture Highlights:**
 ```
-┌─────────────┐     HTTP/JSON     ┌──────────────────────────────┐
+┌─────────────┐     HTTP/JSON    ┌──────────────────────────────┐
 │  Flutter    │ ═══════════════► │ Go Backend (Gin + GORM)      │
 │   Mobile    │ ◄═══════════════ │ ├─ REST API with Swagger     │
-└─────────────┘                 │ ├─ JWT Authentication        │
-                                │ ├─ PostgreSQL + Migrations   │
-                                │ ├─ S3 Image Storage          │
-                                │ └─ AI Outfit Recommendations │
-                                └──────────────────────────────┘
+└─────────────┘                  │ ├─ JWT Authentication        │
+                                 │ ├─ PostgreSQL + Migrations   │
+                                 │ ├─ S3 Image Storage          │
+                                 │ └─ AI Outfit Recommendations │
+                                 └──────────────────────────────┘
 ```
 
 ---
