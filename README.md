@@ -1,7 +1,7 @@
 # FitGenie
 
 App para gestionar tu armario y recibir sugerencias de outfits. Flutter + Go backend.
-
+![Logo](./docs/img/Banner.png)
 ## Qué hace
 
 - Sube fotos de tu ropa (categorías: camisetas, pantalones, calzado...)
@@ -47,7 +47,7 @@ flutter run -d chrome       # Web
 flutter run                 # Android conectado
 ```
 
-**Nota:** La app detecta automáticamente la IP del backend. No necesitas configurar nada.
+**Nota:** La app detecta automáticamente la IP del backend
 
 ### 3. Usar la app
 
@@ -67,7 +67,7 @@ Endpoints principales:
 - `GET /api/v1/clothing` - Listar mi ropa
 - `POST /api/v1/recommendations` - Pedir sugerencias
 
-## Escalar a producción
+## Escalable
 
 ### Opción rápida: Firebase
 
@@ -85,7 +85,7 @@ Contras: Vendor lock-in, costes a escala
 
 ### Opción propia: Kubernetes (k3s)
 
-Para auto-alojamiento en VPS barato (~5€/mes):
+Para auto-alojamiento en VPS barato :
 
 ```bash
 # Desplegar en k3s cluster
@@ -135,13 +135,17 @@ GitHub Actions ejecuta en cada push:
 - `flutter analyze`, `dart format`
 - Build Docker y push a Docker Hub
 
-## TODO / Siguientes pasos
+## TODO 
 
 - [ ] Login real en Flutter (ahora usa device-id)
 - [ ] Análisis automático de imágenes (detectar color/tipo)
 - [ ] Tests unitarios backend
 - [ ] Tests widget Flutter
 
-## Licencia
+---
 
-MIT - Libre para usar y modificar.
+FitGenie — DavidNull
+
+<p align="center">
+  <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb284Znc1d2N2NWtuY2NxNTg0eWEwb3kwb2t3am50bHNpeWNqamptciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OccV3kjjhZnYnhJDCf/giphy.gif" width="120" /> 
+</p>
