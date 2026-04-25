@@ -1,131 +1,131 @@
 # FitGenie
 
-App para gestionar tu armario y recibir sugerencias de outfits. Flutter + Go backend.
+Wardrobe management app with outfit recommendations. Flutter + Go backend.
 
 ![Logo](./docs/img/Banner.png)
 
 ![App Showcase](./docs/img/FitGenie.png)
 
-## Qué hace
+## What it does
 
-- Sube fotos de tu ropa (categorías: camisetas, pantalones, calzado...)
-- Guarda en la app con color y estilo
-- Pide sugerencias para ocasiones (trabajo, cena, ocio)
-- La app recomienda combinaciones según lo que tienes
+- Upload photos of your clothes (categories: t-shirts, pants, shoes...)
+- Store them in the app with color and style info
+- Request suggestions for occasions (work, dinner, casual)
+- Get outfit recommendations based on what you own
 
-## Stack técnico
+## Tech Stack
 
-| Capa | Tecnología |
-|------|-----------|
+| Layer | Technology |
+|-------|-----------|
 | Mobile | Flutter (Provider) |
 | Backend | Go (Gin + GORM) |
-| BD | PostgreSQL |
-| Imágenes | S3 (LocalStack para local) |
-| Auth | JWT (listo para usar) |
-| Docs | Swagger en `/swagger/index.html` |
+| Database | PostgreSQL |
+| Images | S3 (LocalStack for local) |
+| Auth | JWT (ready to use) |
+| Docs | Swagger at `/swagger/index.html` |
 
-## Probarlo en local
+## Try it locally
 
-### 1. Clonar y levantar backend
+### 1. Clone and start backend
 
 ```bash
 git clone https://github.com/DavidNull/FitGenie.git
 cd FitGenie
 
-# Con Docker (PostgreSQL + LocalStack S3 + Go API)
+# With Docker (PostgreSQL + LocalStack S3 + Go API)
 docker compose up -d
 
-# Verificar que está funcionando
+# Verify it's running
 curl http://localhost:8080/health
 ```
 
-### 2. Levantar Flutter
+### 2. Start Flutter
 
 ```bash
 cd mobile
 flutter pub get
 
-# Elige tu plataforma
+# Choose your platform
 flutter run -d linux        # Linux desktop
 flutter run -d chrome       # Web
-flutter run                 # Android conectado
+flutter run                 # Connected Android
 ```
 
-**Nota:** La app detecta automáticamente la IP del backend
+**Note:** The app auto-detects the backend IP. No configuration needed.
 
-### 3. Usar la app
+### 3. Use the app
 
-1. Toca "Usar imágenes de ejemplo" para cargar datos de prueba
-2. Ve a "Armario" para ver tu ropa
-3. Ve a "Recomendaciones", elige ocasión y temporada
-4. Recibe sugerencias de outfits
+1. Tap "Use sample images" to load test data
+2. Go to "Wardrobe" to see your clothes
+3. Go to "Recommendations", pick occasion and season
+4. Get outfit suggestions
 
 ## API
 
-Documentación interactiva: `http://localhost:8080/swagger/index.html`
+Interactive docs: `http://localhost:8080/swagger/index.html`
 
-Endpoints principales:
-- `POST /api/v1/users` - Crear usuario
-- `GET /api/v1/users/me` - Mi perfil
-- `POST /api/v1/upload` - Subir imagen
-- `GET /api/v1/clothing` - Listar mi ropa
-- `POST /api/v1/recommendations` - Pedir sugerencias
+Main endpoints:
+- `POST /api/v1/users` - Create user
+- `GET /api/v1/users/me` - My profile
+- `POST /api/v1/upload` - Upload image
+- `GET /api/v1/clothing` - List my clothes
+- `POST /api/v1/recommendations` - Request suggestions
 
-## Escalable
+## Scale to production
 
-### Opción rápida: Firebase
+### Quick option: Firebase
 
-Para no mantener backend propio, migrar a Firebase:
+To avoid maintaining your own backend, migrate to Firebase:
 
 ```dart
-// Reemplazar llamadas REST por Firebase
+// Replace REST calls with Firebase
 FirebaseFirestore.instance
   .collection('users').doc(uid)
   .collection('clothing').add(item)
 ```
 
-Pros: Sin servidores, escalado automático, funciona offline  
-Contras: Vendor lock-in, costes a escala
+Pros: No servers, auto-scaling, works offline  
+Cons: Vendor lock-in, costs at scale
 
-### Opción propia: Kubernetes (k3s)
+### Self-hosted: Kubernetes (k3s)
 
-Para auto-alojamiento en VPS barato :
+For self-hosting on cheap VPS (~$5/month):
 
 ```bash
-# Desplegar en k3s cluster
+# Deploy to k3s cluster
 kubectl apply -f k8s/
 ```
 
-Incluye: Ingress con TLS, PostgreSQL con volumen, 2 réplicas del API.
+Includes: Ingress with TLS, PostgreSQL with volume, 2 API replicas.
 
 ## Docker
 
-Imagen publicada:
+Published image:
 
 ```bash
 docker pull davidnull/fitgenie:latest
 ```
 
-## Estructura del proyecto
+## Project Structure
 
 ```
 FitGenie/
-├── cmd/server/          # Entrypoint Go
+├── cmd/server/          # Go entrypoint
 ├── internal/
 │   ├── api/handlers/    # HTTP handlers
-│   ├── services/        # Lógica de negocio
-│   ├── repository/      # Acceso a BD
+│   ├── services/        # Business logic
+│   ├── repository/      # DB access
 │   └── models/          # Structs
 ├── pkg/
 │   ├── auth/            # JWT
-│   ├── database/        # Conexión PostgreSQL
+│   ├── database/        # PostgreSQL connection
 │   ├── middleware/      # Auth, logging
 │   └── storage/         # S3 client
 ├── migrations/          # SQL migrations
 ├── mobile/              # Flutter app
 │   ├── lib/
 │   │   ├── screens/     # UI screens
-│   │   ├── providers/   # Estado (Provider)
+│   │   ├── providers/   # State (Provider)
 │   │   └── services/    # API client
 │   └── test/
 ├── k8s/                 # Kubernetes manifests
@@ -134,22 +134,18 @@ FitGenie/
 
 ## CI/CD
 
-GitHub Actions ejecuta en cada push:
+GitHub Actions runs on every push:
 - `go fmt`, `go vet`, tests
 - `flutter analyze`, `dart format`
-- Build Docker y push a Docker Hub
+- Docker build and push to Docker Hub
 
-## TODO 
+## TODO / Next Steps
 
-- [ ] Login real en Flutter (ahora usa device-id)
-- [ ] Análisis automático de imágenes (detectar color/tipo)
-- [ ] Tests unitarios backend
-- [ ] Tests widget Flutter
+- [ ] Real login in Flutter (currently uses device-id)
+- [ ] Automatic image analysis (detect color/type)
+- [ ] Backend unit tests
+- [ ] Flutter widget tests
 
----
+## License
 
-FitGenie — DavidNull
-
-<p align="center">
-  <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb284Znc1d2N2NWtuY2NxNTg0eWEwb3kwb2t3am50bHNpeWNqamptciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OccV3kjjhZnYnhJDCf/giphy.gif" width="120" /> 
-</p>
+MIT - Free to use and modify.
