@@ -147,3 +147,11 @@ GitHub Actions runs on every push:
 - [ ] Automatic image analysis (detect color/type)
 - [ ] Backend unit tests
 - [ ] Flutter widget tests
+
+---
+
+FitGenie — DavidNull
+
+<p align="center">
+  <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb284Znc1d2N2NWtuY2NxNTg0eWEwb3kwb2t3am50bHNpeWNqamptciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OccV3kjjhZnYnhJDCf/giphy.gif" width="120" /> 
+</p>
