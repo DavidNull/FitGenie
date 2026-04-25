@@ -1,7 +1,11 @@
 # FitGenie
 
 App para gestionar tu armario y recibir sugerencias de outfits. Flutter + Go backend.
+
 ![Logo](./docs/img/Banner.png)
+
+![App Showcase](./docs/img/FitGenie.png)
+
 ## Qué hace
 
 - Sube fotos de tu ropa (categorías: camisetas, pantalones, calzado...)
