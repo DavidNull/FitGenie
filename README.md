@@ -4,14 +4,14 @@ Wardrobe management app with outfit recommendations. Flutter + Go backend.
 
 ![Logo](./docs/img/Banner.png)
 
-![App Showcase](./docs/img/FitGenie.png)
-
 ## What it does
 
 - Upload photos of your clothes (categories: t-shirts, pants, shoes...)
 - Store them in the app with color and style info
 - Request suggestions for occasions (work, dinner, casual)
 - Get outfit recommendations based on what you own
+
+![Wardrobe and Recommendations](./docs/img/FitGenie%20(1).png)
 
 ## Tech Stack
 
@@ -139,13 +139,11 @@ GitHub Actions runs on every push:
 - `flutter analyze`, `dart format`
 - Docker build and push to Docker Hub
 
+![App Showcase](./docs/img/FitGenie.png)
+
 ## TODO / Next Steps
 
 - [ ] Real login in Flutter (currently uses device-id)
 - [ ] Automatic image analysis (detect color/type)
 - [ ] Backend unit tests
 - [ ] Flutter widget tests
-
-## License
-
-MIT - Free to use and modify.
